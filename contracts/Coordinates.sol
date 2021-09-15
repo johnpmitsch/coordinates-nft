@@ -1294,12 +1294,12 @@ contract Coordinates is ERC721Enumerable, ReentrancyGuard, Ownable {
 
     uint256 public totalLimit = 65341; // 361 * 181
     uint256 public userLimit = 60000;
-    uint256 private chunks = 3439;
-    uint256 private offsetMultiplier = totalLimit / chunks;
+    int256 private chunks = 3439;
+    int256 private offsetMultiplier = int256(totalLimit) / chunks;
 
     struct Coordinate {
-        uint256 longitude;
-        uint256 latitude;
+        int256 longitude;
+        int256 latitude;
     }
     Coordinate[] private coordinates;
 
@@ -1310,15 +1310,16 @@ contract Coordinates is ERC721Enumerable, ReentrancyGuard, Ownable {
     }
     
     function getCoordinatesFromId(uint256 tokenId) internal view returns (Coordinate memory) {
-        uint256 offset = tokenId % offsetMultiplier;
-        uint256 fullOffset = chunks * offset;
-        uint256 counter = (tokenId + 1) / offsetMultiplier;
-        uint256 offsetMint = fullOffset + counter;
+        int256 i = int256(tokenId);
+        int256 offset = i % offsetMultiplier;
+        int256 fullOffset = chunks * offset;
+        int256 counter = (i + 1) / offsetMultiplier;
+        int256 offsetMint = fullOffset + counter;
 
-        uint256 ulat = offsetMint / 361;
-        uint256 ulon = offsetMint % 361;
-        uint256 lat = ulat - 91;
-        uint256 lon = ulon - 180;
+        int256 ulat = offsetMint / 361;
+        int256 ulon = offsetMint % 361;
+        int256 lat = ulat - 91;
+        int256 lon = ulon - 180;
         return Coordinate(lon, lat);
     }
 
