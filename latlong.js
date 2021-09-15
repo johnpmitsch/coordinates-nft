@@ -5,16 +5,12 @@ const offsetMultiplier = total / chunks;
 const allTotals = [];
 const allLats = [];
 const allLons = [];
-let counter = 0;
 
 // The coordinates are split into chunks that will be iterated through
 for (let i = 0; i < total; i++) {
   const offset = i % offsetMultiplier;
   const fullOffset = chunks * offset;
-  if (fullOffset == 0) {
-    counter += 1;
-  }
-  //console.log({ i, chunks, offsetMultiplier, fullOffset, counter, offset });
+  const counter = Math.ceil((i + 1) / offsetMultiplier);
   const offsetMint = fullOffset + counter;
 
   const ulat = offsetMint / 361;
