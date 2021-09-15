@@ -1,15 +1,40 @@
 // For testing out lat/long generation math
-let total = 65341;
-total = 181;
-const allLongs = [];
-for (let i = 1; i < total; i++) {
-  const lat = i / 361;
-  const lon = i % 361;
-  const lonMod = lon % 19
-  const lonOffset = (lon + lonMod * 19) % 360
-  allLongs.push(lonOffset)
+const total = 65341; // 181 * 361
+const chunks = 3439; // a number that is a divisor of a total
+const offsetMultiplier = total / chunks;
+const allTotals = [];
+const allLats = [];
+const allLons = [];
+let counter = 0;
 
-  console.log(`${parseInt(lonOffset - 180)}, ${parseInt(lat - 90)}`);
+// The coordinates are split into chunks that will be iterated through
+for (let i = 0; i < total; i++) {
+  const offset = i % offsetMultiplier;
+  const fullOffset = chunks * offset;
+  if (fullOffset == 0) {
+    counter += 1;
+  }
+  //console.log({ i, chunks, offsetMultiplier, fullOffset, counter, offset });
+  const offsetMint = fullOffset + counter;
+
+  const ulat = offsetMint / 361;
+  const ulon = offsetMint % 361;
+  const lat = Math.ceil(ulat - 91);
+  const lon = Math.ceil(ulon - 180);
+  allLats.push(lat);
+  allLons.push(lon);
 }
 
-console.log(allLongs.sort())
+//console.table(allLats.filter((v, i, a) => a.indexOf(v) === i).sort((a,b) => b - a));
+//console.table(allLons.filter((v, i, a) => a.indexOf(v) === i).sort((a,b) => b - a));
+
+const countArr = (arr) => {
+  const counts = {};
+  for (const num of arr) {
+    counts[num] = counts[num] ? counts[num] + 1 : 1;
+  }
+  return counts;
+};
+
+console.table(countArr(allLats.sort((a, b) => b - a)));
+console.table(countArr(allLons.sort((a, b) => b - a)));

@@ -1294,7 +1294,8 @@ contract Coordinates is ERC721Enumerable, ReentrancyGuard, Ownable {
 
     uint256 public totalLimit = 65341; // 361 * 181
     uint256 public userLimit = 60000;
-    uint256 private offset;
+    uint256 private chunks = 3439;
+    uint256 private offsetMultiplier = totalLimit / chunks;
 
     struct Coordinate {
         uint256 longitude;
@@ -1302,9 +1303,7 @@ contract Coordinates is ERC721Enumerable, ReentrancyGuard, Ownable {
     }
     Coordinate[] private coordinates;
 
-    constructor() ERC721("Coordinates", "COOR") Ownable() {
-        offset = uint256(keccak256(abi.encodePacked(block.timestamp)));
-    }
+    constructor() ERC721("Coordinates", "COOR") Ownable() {}
 
     function random(string memory input) internal pure returns (uint256) {
         return uint256(keccak256(abi.encodePacked(input)));
