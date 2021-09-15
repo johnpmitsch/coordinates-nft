@@ -1305,15 +1305,21 @@ contract Coordinates is ERC721Enumerable, ReentrancyGuard, Ownable {
 
     constructor() ERC721("Coordinates", "COOR") Ownable() {}
 
-    function random(string memory input) internal pure returns (uint256) {
-        return uint256(keccak256(abi.encodePacked(input)));
+    function ceil(uint256 a, uint256 m) internal pure returns (uint256 ) {
+        return ((a + m - 1) / m) * m;
     }
     
     function getCoordinatesFromId(uint256 tokenId) internal view returns (Coordinate memory) {
-        uint256 id = (tokenId + offset) % totalLimit;
-        uint256 latitude = id / 361;  
-        uint256 longitude = id % 361;
-        return Coordinate(longitude, latitude);
+        uint256 offset = tokenId % offsetMultiplier;
+        uint256 fullOffset = chunks * offset;
+        uint256 counter = (tokenId + 1) / offsetMultiplier;
+        uint256 offsetMint = fullOffset + counter;
+
+        uint256 ulat = offsetMint / 361;
+        uint256 ulon = offsetMint % 361;
+        uint256 lat = ulat - 91;
+        uint256 lon = ulon - 180;
+        return Coordinate(lon, lat);
     }
 
     function tokenURI(uint256 tokenId) override public view returns (string memory) {
