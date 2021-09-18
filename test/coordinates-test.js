@@ -19,7 +19,7 @@ describe("Coordinates", () => {
     const allLons = [];
 
     //const total = 65340;
-    const total = 10000;
+    const total = 1000;
     console.log("Minting... it may take a while");
     for (let i = 1; i <= total; i++) {
       await coordinates.claim(i);
