@@ -22,7 +22,9 @@ module.exports = {
     artifacts: "./src/artifacts",
   },
   networks: {
-    hardhat: {},
+    hardhat: {
+      chainId: 1337,
+    },
     rinkeby: {
       url: "https://rinkeby.infura.io/v3/7228b494adf94a63bab07ea737183033",
       accounts: [`0x${pk}`],

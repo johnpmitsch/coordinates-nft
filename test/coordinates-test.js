@@ -1,6 +1,5 @@
 const { expect } = require("chai");
-const { ethers } = require("hardhat");
-const PromisePool = require("@supercharge/promise-pool");
+//const PromisePool = require("@supercharge/promise-pool");
 
 const countArr = (arr) => {
   const counts = {};

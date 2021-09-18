@@ -3,11 +3,9 @@ import { useState } from "react";
 import { ethers } from "ethers";
 import Coordinates from "./artifacts/contracts/Coordinates.sol/Coordinates.json";
 
-const coordinateAddress = "0x5FbDB2315678afecb367f032d93F642f64180aa3";
+const coordinateAddress = "0x75d27e6B5deED6CD514464F82438A86C3470fCA5";
 
 function App() {
-  const [greeting, setCoordinatesValue] = useState();
-
   async function requestAccount() {
     await window.ethereum.request({ method: "eth_requestAccounts" });
   }
@@ -15,14 +13,13 @@ function App() {
   async function fetchCoordinates() {
     if (typeof window.ethereum !== "undefined") {
       const provider = new ethers.providers.Web3Provider(window.ethereum);
-      console.log({ provider });
       const contract = new ethers.Contract(
         coordinateAddress,
         Coordinates.abi,
         provider
       );
       try {
-        const data = await contract.claim(1);
+        const data = await contract.claim(3);
         console.log("data: ", data);
         console.log({ provider });
       } catch (err) {
@@ -31,19 +28,17 @@ function App() {
     }
   }
 
-  async function setCoordinates() {
-    if (!greeting) return;
+  async function mintCoordinates() {
     if (typeof window.ethereum !== "undefined") {
       await requestAccount();
       const provider = new ethers.providers.Web3Provider(window.ethereum);
-      console.log({ provider });
       const signer = provider.getSigner();
       const contract = new ethers.Contract(
         coordinateAddress,
         Coordinates.abi,
         signer
       );
-      const transaction = await contract.setCoordinates(greeting);
+      const transaction = await contract.claim(1);
       await transaction.wait();
       fetchCoordinates();
     }
@@ -53,7 +48,7 @@ function App() {
     <div className="App">
       <header className="App-header">
         <button onClick={fetchCoordinates}>Fetch Coordinates</button>
-        <button onClick={setCoordinates}>Set Coordinates</button>
+        <button onClick={mintCoordinates}>Mint Coordinates</button>
         <br />
       </header>
     </div>
