@@ -16,7 +16,11 @@ task("accounts", "Prints the list of accounts", async (taskArgs, hre) => {
 const pk = "ccc7e61e53eb22dad7bb268e1ffc09c4757e001c24422bd1646b20a65ab240ab";
 
 module.exports = {
+  defaultNetwork: "hardhat",
   solidity: "0.8.4",
+  paths: {
+    artifacts: "./src/artifacts",
+  },
   networks: {
     hardhat: {},
     rinkeby: {
