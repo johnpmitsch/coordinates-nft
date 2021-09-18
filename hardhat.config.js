@@ -21,11 +21,16 @@ module.exports = {
     hardhat: {},
     rinkeby: {
       url: "https://rinkeby.infura.io/v3/7228b494adf94a63bab07ea737183033",
-      accounts: [`0x${pk}`]
+      accounts: [`0x${pk}`],
     },
     ropsten: {
       url: "https://ropsten.infura.io/v3/912debd4ed80486b9644156febf8e993",
-      accounts: [`0xccc7e61e53eb22dad7bb268e1ffc09c4757e001c24422bd1646b20a65ab240ab`]
-    }
+      accounts: [
+        `0xccc7e61e53eb22dad7bb268e1ffc09c4757e001c24422bd1646b20a65ab240ab`,
+      ],
+    },
+  },
+  mocha: {
+    timeout: 120 * 60 * 1000, // 120 minutes to allow minting
   },
 };

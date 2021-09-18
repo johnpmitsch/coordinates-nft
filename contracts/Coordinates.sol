@@ -1292,14 +1292,14 @@ abstract contract ERC721Enumerable is ERC721, IERC721Enumerable {
 
 contract Coordinates is ERC721Enumerable, ReentrancyGuard, Ownable {
 
-    uint256 public totalLimit = 65341; // 361 * 181
+    uint256 public totalLimit = 65340; // 361 * 181
     uint256 public userLimit = 60000;
-    int256 private chunks = 3439;
-    int256 private offsetMultiplier = int256(totalLimit) / chunks;
+    uint256 private chunks = 3439;
+    uint256 private offsetMultiplier = totalLimit / chunks;
 
     struct Coordinate {
-        int256 longitude;
-        int256 latitude;
+        uint256 longitude;
+        uint256 latitude;
     }
     Coordinate[] private coordinates;
 
@@ -1310,30 +1310,30 @@ contract Coordinates is ERC721Enumerable, ReentrancyGuard, Ownable {
     }
     
     function getCoordinatesFromId(uint256 tokenId) internal view returns (Coordinate memory) {
-        int256 i = int256(tokenId);
-        int256 offset = i % offsetMultiplier;
-        int256 fullOffset = chunks * offset;
-        int256 counter = (i + 1) / offsetMultiplier;
-        int256 offsetMint = fullOffset + counter;
+        uint256 i = tokenId;
+        uint256 offset = i % offsetMultiplier;
+        uint256 fullOffset = chunks * offset;
+        uint256 counter = (i + 1) / offsetMultiplier;
+        uint256 offsetMint = fullOffset + counter - 1;
 
-        int256 ulat = offsetMint / 361;
-        int256 ulon = offsetMint % 361;
-        int256 lat = ulat - 91;
-        int256 lon = ulon - 180;
+        //actual latitude is lat - 91;
+        uint256 lat = offsetMint / 361;
+        //actual longitude is lon - 180;
+        uint256 lon = offsetMint % 361;
         return Coordinate(lon, lat);
     }
 
     function tokenURI(uint256 tokenId) override public view returns (string memory) {
         Coordinate memory coordinate = getCoordinatesFromId(tokenId);
 
-        string memory json = Base64.encode(bytes(string(abi.encodePacked('{"name": "Coordinates #', toString(tokenId), ', "longitude": ', toString(coordinate.longitude), ', "latitude: "', toString(coordinate.latitude), '", "description": "A piece of the world"}'))));
+        string memory json = Base64.encode(bytes(string(abi.encodePacked('{"name": "Coordinates #', toString(tokenId), '", "longitude": ', toString(coordinate.longitude), ', "latitude": ', toString(coordinate.latitude), ', "description": "A piece of the world"}'))));
         string memory output = string(abi.encodePacked('data:application/json;base64,', json));
 
         return output;
     }
 
     function claim(uint256 tokenId) public nonReentrant {
-        require(tokenId > 0 && tokenId <= userLimit, "Token ID invalid");
+        require(tokenId > 0 && tokenId <= totalLimit, "Token ID invalid");
         _safeMint(_msgSender(), tokenId);
     }
     
