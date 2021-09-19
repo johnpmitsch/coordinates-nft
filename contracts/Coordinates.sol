@@ -456,6 +456,8 @@ interface IERC721Metadata is IERC721 {
      * @dev Returns the Uniform Resource Identifier (URI) for `tokenId` token.
      */
     function tokenURI(uint256 tokenId) external view returns (string memory);
+
+    //function readBatch(uint256[] memory coordinateIds) external view returns (string[] memory);
 }
 
 
@@ -786,6 +788,12 @@ contract ERC721 is Context, ERC165, IERC721, IERC721Metadata {
         string memory baseURI = _baseURI();
         return bytes(baseURI).length > 0 ? string(abi.encodePacked(baseURI, tokenId.toString())) : "";
     }
+
+    //function readBatch(uint256[] memory coordinateIds) public view virtual override returns (string[] memory) {
+    //    string[] storage hi;
+    //    hi[0] = "hi";
+    //    return hi;
+    //}
 
     /**
      * @dev Base URI for computing {f&
@@ -1300,7 +1308,7 @@ contract Coordinates is ERC721Enumerable, ReentrancyGuard, Ownable {
         uint256 longitude;
         uint256 latitude;
     }
-    Coordinate[] private coordinates;
+    mapping (uint256 => string) coordinates;
 
     constructor() ERC721("Coordinates", "COOR") Ownable() {}
 
@@ -1308,7 +1316,7 @@ contract Coordinates is ERC721Enumerable, ReentrancyGuard, Ownable {
         return ((a + m - 1) / m) * m;
     }
     
-    function getCoordinatesFromId(uint256 tokenId) internal view returns (Coordinate memory) {
+    function getCoordinatesFromId(uint256 tokenId) public view returns (Coordinate memory) {
         uint256 i = tokenId;
         uint256 offset = i % offsetMultiplier;
         uint256 fullOffset = chunks * offset;
@@ -1322,7 +1330,7 @@ contract Coordinates is ERC721Enumerable, ReentrancyGuard, Ownable {
         return Coordinate(lon, lat);
     }
 
-    function tokenURI(uint256 tokenId) override public view returns (string memory) {
+    function coordinateData(uint256 tokenId) public view returns (string memory) {
         Coordinate memory coordinate = getCoordinatesFromId(tokenId);
 
         string memory json = Base64.encode(bytes(string(abi.encodePacked('{"name": "Coordinates #', toString(tokenId), '", "longitude": ', toString(coordinate.longitude), ', "latitude": ', toString(coordinate.latitude), ', "description": "A piece of the world"}'))));
@@ -1331,28 +1339,37 @@ contract Coordinates is ERC721Enumerable, ReentrancyGuard, Ownable {
         return output;
     }
 
-    function claimBatch(uint256 batchNum) public nonReentrant {
-        uint256 batchStart = batchNum * 100;
-        require(batchNum > 0 && batchStart < totalLimit, "Batch number is invalid");
-        for (uint256 i = batchStart; i < batchStart + 100; i++) {
-            if (i > totalLimit) {
-                return;
-            } else {
-                _safeMint(_msgSender(), i);
-            }
-        }
+    function tokenURI(uint256 tokenId) override public view returns (string memory) {
+        return coordinates[tokenId];
     }
 
-    function claim(uint256 tokenId) public nonReentrant {
+    //function readBatch(uint256[] memory coordinateIds) override public view returns (string[] memory) {
+    //    string[] memory results;
+    //    for (uint256 i = 0; i < coordinateIds.length; i++) {
+    //        uint256 coordinateId = coordinateIds[i];
+    //        require(coordinateId > 0 && coordinateId <= totalLimit, "Token ID invalid");
+    //        results[i] = tokenURI(coordinateId);
+    //    }
+    //    return results;
+    //}
+
+    function claim(uint256 tokenId) public {
         require(tokenId > 0 && tokenId <= totalLimit, "Token ID invalid");
         _safeMint(_msgSender(), tokenId);
+        coordinates[tokenId] = coordinateData(tokenId);(tokenId);
+    }
+
+    function claimMultiple(uint256[] memory tokenIds) public nonReentrant {
+        for (uint256 i = 0; i < tokenIds.length; i++) {
+            claim(tokenIds[i]);
+        }
     }
     
     function ownerClaim(uint256 tokenId) public nonReentrant onlyOwner {
         require(tokenId > userLimit && tokenId <= totalLimit, "Token ID invalid");
         _safeMint(owner(), tokenId);
     }
-    
+
     function toString(uint256 value) internal pure returns (string memory) {
     // Inspired by OraclizeAPI's implementation - MIT license
     // https://github.com/oraclize/ethereum-api/blob/b42146b063c7d6ee1358846c198246239e9360e8/oraclizeAPI_0.4.25.sol

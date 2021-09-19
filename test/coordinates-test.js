@@ -23,8 +23,8 @@ const promiseAllInBatches = async (task, items, batchSize) => {
   return results;
 };
 
-describe("Coordinates", () => {
-  it("Deploy and mint all tokens", async function () {
+describe("Coordinates check", () => {
+  it("check the numbers returned for the coordinates", async function () {
     const Coordinates = await hre.ethers.getContractFactory("Coordinates");
     const coordinates = await Coordinates.deploy();
     await coordinates.deployed();
@@ -32,38 +32,39 @@ describe("Coordinates", () => {
     const allLons = [];
     const allIds = [];
 
-    //const total = 65340;
-    const total = 10000;
-    console.log("Minting... it may take a while");
-    for (let i = 1; i <= total; i++) {
-      allIds.push(i);
-    }
+    const total = 65340;
+    //const total = 1000;
+
+    //console.log("Minting... it may take a while");
+    //  allIds.push(i);
+    //}
 
     //console.time("claim");
     //await promiseAllInBatches(coordinates.claim, allIds, 100);
     //console.timeEnd("claim");
-    for (let i = 1; i <= total / 100; i++) {
-      await coordinates.claimBatch(i);
-    }
 
-    console.time("tokenURI");
-    const uris = await promiseAllInBatches(coordinates.tokenURI, allIds, 100);
-    console.timeEnd("tokenURI");
+    //console.time("tokenURI");
+    //const uris = await promiseAllInBatches(coordinates.tokenURI, allIds, 100);
+    //console.timeEnd("tokenURI");
 
-    uris.map((uri) => {
-      b64json = uri.split("base64,")[1];
-      jsonString = Buffer.from(b64json, "base64").toString();
-      const { latitude, longitude } = JSON.parse(jsonString);
+    for (let i = 1; i <= total; i++) {
+      //b64json = uri.split("base64,")[1];
+      //jsonString = Buffer.from(b64json, "base64").toString();
+      //const { latitude, longitude } = JSON.parse(jsonString);
+      // Need to change getCoordinatesFromId to public function
+      const coor = await coordinates.getCoordinatesFromId(i);
+      const longitude = coor.longitude.toNumber();
+      const latitude = coor.latitude.toNumber();
       //actual latitude is lat - 91;
       const lat = latitude - 90;
       //actual lon is 180;
       const lon = longitude - 180;
       allLats.push(lat);
       allLons.push(lon);
-    });
+    }
 
-    //console.table(countArr(allLats.sort((a, b) => b - a)));
-    //console.table(countArr(allLons.sort((a, b) => b - a)));
+    console.table(countArr(allLats.sort((a, b) => b - a)));
+    console.table(countArr(allLons.sort((a, b) => b - a)));
 
     expect(true).to.equal(true);
   });
