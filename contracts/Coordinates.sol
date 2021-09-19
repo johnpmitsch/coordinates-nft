@@ -1331,6 +1331,18 @@ contract Coordinates is ERC721Enumerable, ReentrancyGuard, Ownable {
         return output;
     }
 
+    function claimBatch(uint256 batchNum) public nonReentrant {
+        uint256 batchStart = batchNum * 100;
+        require(batchNum > 0 && batchStart < totalLimit, "Batch number is invalid");
+        for (uint256 i = batchStart; i < batchStart + 100; i++) {
+            if (i > totalLimit) {
+                return;
+            } else {
+                _safeMint(_msgSender(), i);
+            }
+        }
+    }
+
     function claim(uint256 tokenId) public nonReentrant {
         require(tokenId > 0 && tokenId <= totalLimit, "Token ID invalid");
         _safeMint(_msgSender(), tokenId);
