@@ -5,6 +5,7 @@
 // SPDX-License-Identifier: MIT
 
 pragma solidity ^0.8.0;
+import "hardhat/console.sol";
 
 /**
  * @dev Interface of the ERC165 standard, as defined in the
@@ -1299,7 +1300,7 @@ abstract contract ERC721Enumerable is ERC721, IERC721Enumerable {
 
 contract Coordinates is ERC721Enumerable, ReentrancyGuard, Ownable {
 
-    uint256 public totalLimit = 65340; // 361 * 181
+    uint256 public totalLimit = 65341; // 361 * 181
     uint256 public userLimit = 60000;
     uint256 private chunks = 3439;
     uint256 private offsetMultiplier = totalLimit / chunks;
@@ -1316,12 +1317,20 @@ contract Coordinates is ERC721Enumerable, ReentrancyGuard, Ownable {
         return ((a + m - 1) / m) * m;
     }
     
+
     function getCoordinatesFromId(uint256 tokenId) public view returns (Coordinate memory) {
+        //console.log("---");
         uint256 i = tokenId;
         uint256 offset = i % offsetMultiplier;
         uint256 fullOffset = chunks * offset;
         uint256 counter = (i + 1) / offsetMultiplier;
-        uint256 offsetMint = fullOffset + counter - 1;
+        //console.log(i);
+        //console.log(offset);
+        //console.log(offsetMultiplier);
+        //console.log(fullOffset);
+        //console.log(offsetMultiplier);
+        uint256 offsetMint = fullOffset + counter + 1;
+        //console.log(offsetMint);
 
         //actual latitude is lat - 91;
         uint256 lat = offsetMint / 361;
@@ -1354,7 +1363,7 @@ contract Coordinates is ERC721Enumerable, ReentrancyGuard, Ownable {
     //}
 
     function claim(uint256 tokenId) public {
-        require(tokenId > 0 && tokenId <= totalLimit, "Token ID invalid");
+        require(tokenId > 0 && tokenId < totalLimit, "Token ID invalid");
         _safeMint(_msgSender(), tokenId);
         coordinates[tokenId] = coordinateData(tokenId);(tokenId);
     }
@@ -1366,7 +1375,7 @@ contract Coordinates is ERC721Enumerable, ReentrancyGuard, Ownable {
     }
     
     function ownerClaim(uint256 tokenId) public nonReentrant onlyOwner {
-        require(tokenId > userLimit && tokenId <= totalLimit, "Token ID invalid");
+        require(tokenId > userLimit && tokenId < totalLimit, "Token ID invalid");
         _safeMint(owner(), tokenId);
     }
 

@@ -7,11 +7,18 @@ const allLats = [];
 const allLons = [];
 
 // The coordinates are split into chunks that will be iterated through
-for (let i = 0; i < total; i++) {
+for (let i = 1; i < 100; i++) {
+  //console.log("---");
   const offset = i % offsetMultiplier;
   const fullOffset = chunks * offset;
   const counter = Math.ceil((i + 1) / offsetMultiplier);
+  //console.log(i);
+  //console.log(offset);
+  //console.log(offsetMultiplier);
+  //console.log(fullOffset);
+  //console.log(offsetMultiplier);
   const offsetMint = fullOffset + counter;
+  //console.log(offsetMint);
 
   const ulat = offsetMint / 361;
   const ulon = offsetMint % 361;
@@ -20,9 +27,6 @@ for (let i = 0; i < total; i++) {
   allLats.push(lat);
   allLons.push(lon);
 }
-
-//console.table(allLats.filter((v, i, a) => a.indexOf(v) === i).sort((a,b) => b - a));
-//console.table(allLons.filter((v, i, a) => a.indexOf(v) === i).sort((a,b) => b - a));
 
 const countArr = (arr) => {
   const counts = {};

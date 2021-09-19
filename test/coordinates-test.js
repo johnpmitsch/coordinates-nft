@@ -33,7 +33,8 @@ describe("Coordinates check", () => {
 
     const total = 65340;
 
-    for (let i = 1; i <= total; i++) {
+    for (let i = 1; i < total; i++) {
+      // Need to change this to a public method
       const coor = await coordinates.getCoordinatesFromId(i);
       const longitude = coor.longitude.toNumber();
       const latitude = coor.latitude.toNumber();
