@@ -30,28 +30,10 @@ describe("Coordinates check", () => {
     await coordinates.deployed();
     const allLats = [];
     const allLons = [];
-    const allIds = [];
 
     const total = 65340;
-    //const total = 1000;
-
-    //console.log("Minting... it may take a while");
-    //  allIds.push(i);
-    //}
-
-    //console.time("claim");
-    //await promiseAllInBatches(coordinates.claim, allIds, 100);
-    //console.timeEnd("claim");
-
-    //console.time("tokenURI");
-    //const uris = await promiseAllInBatches(coordinates.tokenURI, allIds, 100);
-    //console.timeEnd("tokenURI");
 
     for (let i = 1; i <= total; i++) {
-      //b64json = uri.split("base64,")[1];
-      //jsonString = Buffer.from(b64json, "base64").toString();
-      //const { latitude, longitude } = JSON.parse(jsonString);
-      // Need to change getCoordinatesFromId to public function
       const coor = await coordinates.getCoordinatesFromId(i);
       const longitude = coor.longitude.toNumber();
       const latitude = coor.latitude.toNumber();
