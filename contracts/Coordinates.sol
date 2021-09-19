@@ -1319,18 +1319,18 @@ contract Coordinates is ERC721Enumerable, ReentrancyGuard, Ownable {
     
 
     function getCoordinatesFromId(uint256 tokenId) public view returns (Coordinate memory) {
-        //console.log("---");
+        console.log("---");
         uint256 i = tokenId;
         uint256 offset = i % offsetMultiplier;
         uint256 fullOffset = chunks * offset;
         uint256 counter = (i + 1) / offsetMultiplier;
-        //console.log(i);
-        //console.log(offset);
-        //console.log(offsetMultiplier);
-        //console.log(fullOffset);
-        //console.log(offsetMultiplier);
+        console.log(i);
+        console.log(offset);
+        console.log(offsetMultiplier);
+        console.log(fullOffset);
+        console.log(offsetMultiplier);
         uint256 offsetMint = fullOffset + counter + 1;
-        //console.log(offsetMint);
+        console.log(offsetMint);
 
         //actual latitude is lat - 91;
         uint256 lat = offsetMint / 361;

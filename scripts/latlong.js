@@ -7,18 +7,18 @@ const allLats = [];
 const allLons = [];
 
 // The coordinates are split into chunks that will be iterated through
-for (let i = 1; i < 100; i++) {
-  //console.log("---");
+for (let i = 1; i < total; i++) {
+  console.log("---");
   const offset = i % offsetMultiplier;
   const fullOffset = chunks * offset;
-  const counter = Math.ceil((i + 1) / offsetMultiplier);
-  //console.log(i);
-  //console.log(offset);
-  //console.log(offsetMultiplier);
-  //console.log(fullOffset);
-  //console.log(offsetMultiplier);
-  const offsetMint = fullOffset + counter;
-  //console.log(offsetMint);
+  const counter = Math.floor((i + 1) / offsetMultiplier);
+  console.log(i);
+  console.log(offset);
+  console.log(offsetMultiplier);
+  console.log(fullOffset);
+  console.log(offsetMultiplier);
+  const offsetMint = fullOffset + counter + 1;
+  console.log(offsetMint);
 
   const ulat = offsetMint / 361;
   const ulon = offsetMint % 361;
