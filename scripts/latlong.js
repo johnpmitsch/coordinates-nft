@@ -1,17 +1,16 @@
 // For testing out lat/long generation math
-//const total = 65341; // 181 * 361
-//const total = 65340; // 181 * 361
-const total = 45; // 5 * 9
-//const chunks = 3439; // a number that is a divisor of a total
+const total = 65341; // 181 * 361
+//const total = 45; // 5 * 9
+const chunks = 3439; // a number that is a divisor of a total
 //const chunks = 3630; // a number that is a divisor of a total
-const chunks = 5;
+//const chunks = 5;
 const offsetMultiplier = total / chunks;
-//const totalLons = 361;
-const totalLons = 9;
-//const latOffset = 90;
-const latOffset = 3;
-//const lonOffset = 180;
-const lonOffset = 4;
+const totalLons = 361;
+//const totalLons = 9;
+const latOffset = 90;
+//const latOffset = 3;
+const lonOffset = 180;
+//const lonOffset = 4;
 const allTotals = [];
 const allLats = [];
 const allLons = [];

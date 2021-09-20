@@ -31,9 +31,9 @@ describe("Coordinates check", () => {
     const allLats = [];
     const allLons = [];
 
-    const total = 65340;
+    const total = 65341;
 
-    for (let i = 1; i < total; i++) {
+    for (let i = 1; i <= total; i++) {
       // Need to change this to a public method
       const coor = await coordinates.getCoordinatesFromId(i);
       const longitude = coor.longitude.toNumber();
