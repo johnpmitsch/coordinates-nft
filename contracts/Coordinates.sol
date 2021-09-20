@@ -1302,7 +1302,7 @@ contract Coordinates is ERC721Enumerable, ReentrancyGuard, Ownable {
 
     uint256 public totalLimit = 65341; // 361 * 181
     uint256 public userLimit = 60000;
-    uint256 private chunks = 3439;
+    uint256 private chunks = 3630;
     uint256 private offsetMultiplier = totalLimit / chunks;
 
     struct Coordinate {
@@ -1319,8 +1319,7 @@ contract Coordinates is ERC721Enumerable, ReentrancyGuard, Ownable {
     
 
     function getCoordinatesFromId(uint256 tokenId) public view returns (Coordinate memory) {
-        console.log("---");
-        uint256 i = tokenId;
+        uint256 i = tokenId - 1;
         uint256 offset = i % offsetMultiplier;
         uint256 fullOffset = chunks * offset;
         uint256 counter = (i + 1) / offsetMultiplier;
