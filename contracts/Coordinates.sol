@@ -5,7 +5,6 @@
 // SPDX-License-Identifier: MIT
 
 pragma solidity ^0.8.0;
-import "hardhat/console.sol";
 
 /**
  * @dev Interface of the ERC165 standard, as defined in the
@@ -1302,12 +1301,12 @@ contract Coordinates is ERC721Enumerable, ReentrancyGuard, Ownable {
 
     uint256 public totalLimit = 65341; // 361 * 181
     uint256 public userLimit = 60000;
-    uint256 private chunks = 3439;
-    uint256 private offsetMultiplier = totalLimit / chunks;
+    int256 private chunks = 3439;
+    int256 private offsetMultiplier = int256(totalLimit) / chunks;
 
     struct Coordinate {
-        uint256 longitude;
-        uint256 latitude;
+        int256 longitude;
+        int256 latitude;
     }
     mapping (uint256 => string) coordinates;
 
@@ -1317,25 +1316,24 @@ contract Coordinates is ERC721Enumerable, ReentrancyGuard, Ownable {
         return ((a + m - 1) / m) * m;
     }
     
-
-    function getCoordinatesFromId(uint256 tokenId) public view returns (Coordinate memory) {
-        uint256 i = tokenId - 1;
-        uint256 chunkIndex = i % offsetMultiplier;
-        uint256 base = chunks * chunkIndex;
-        uint256 counter = i / offsetMultiplier;
-        uint256 offsetMint = base + counter;
+    function getCoordinatesFromId(uint256 tokenId) private view returns (Coordinate memory) {
+        int256 i = int256(tokenId - 1);
+        int256 chunkIndex = i % offsetMultiplier;
+        int256 base = chunks * chunkIndex;
+        int256 counter = i / offsetMultiplier;
+        int256 offsetMint = base + counter;
 
         //actual latitude is lat - 90
-        uint256 lat = offsetMint / 361;
+        int256 lat = offsetMint / 361;
         //actual longitude is lon - 180;
-        uint256 lon = offsetMint % 361;
-        return Coordinate(lon, lat);
+        int256 lon = offsetMint % 361;
+        return Coordinate(lon - 180, lat - 90);
     }
 
-    function coordinateData(uint256 tokenId) public view returns (string memory) {
+    function coordinateData(uint256 tokenId) private view returns (string memory) {
         Coordinate memory coordinate = getCoordinatesFromId(tokenId);
 
-        string memory json = Base64.encode(bytes(string(abi.encodePacked('{"name": "Coordinates #', toString(tokenId), '", "longitude": ', toString(coordinate.longitude), ', "latitude": ', toString(coordinate.latitude), ', "description": "A piece of the world"}'))));
+        string memory json = Base64.encode(bytes(string(abi.encodePacked('{"name": "Coordinates #', toString(tokenId), '", "longitude": "', intToStr(coordinate.longitude), '", "latitude": "', intToStr(coordinate.latitude), '", "description": "A piece of the world"}'))));
         string memory output = string(abi.encodePacked('data:application/json;base64,', json));
 
         return output;
@@ -1345,31 +1343,51 @@ contract Coordinates is ERC721Enumerable, ReentrancyGuard, Ownable {
         return coordinates[tokenId];
     }
 
-    //function readBatch(uint256[] memory coordinateIds) override public view returns (string[] memory) {
-    //    string[] memory results;
-    //    for (uint256 i = 0; i < coordinateIds.length; i++) {
-    //        uint256 coordinateId = coordinateIds[i];
-    //        require(coordinateId > 0 && coordinateId <= totalLimit, "Token ID invalid");
-    //        results[i] = tokenURI(coordinateId);
-    //    }
-    //    return results;
-    //}
-
     function claim(uint256 tokenId) public {
-        require(tokenId > 0 && tokenId <= totalLimit, "Token ID invalid");
+        require(tokenId > 0 && tokenId <= userLimit, "Token ID invalid");
         _safeMint(_msgSender(), tokenId);
-        coordinates[tokenId] = coordinateData(tokenId);(tokenId);
+        coordinates[tokenId] = coordinateData(tokenId);
     }
 
-    function claimMultiple(uint256[] memory tokenIds) public nonReentrant {
-        for (uint256 i = 0; i < tokenIds.length; i++) {
-            claim(tokenIds[i]);
-        }
-    }
-    
     function ownerClaim(uint256 tokenId) public nonReentrant onlyOwner {
         require(tokenId > userLimit && tokenId <= totalLimit, "Token ID invalid");
         _safeMint(owner(), tokenId);
+    }
+
+    function intToStr(int v) internal pure returns (string memory) {
+        uint maxlength = 100;
+        bytes memory reversed = new bytes(maxlength);
+        uint i = 0;
+        uint x;
+        if(v < 0)
+            x = uint(-v);
+        else
+            x = uint(v);
+        while (x != 0) {
+            uint remainder = uint(x % 10);
+            x = x / 10;
+            reversed[i % maxlength] = bytes1(uint8(48 + remainder));
+            i++;
+        }
+        if(v < 0)
+            reversed[(i++) % maxlength] = "-";
+        bytes memory s = new bytes(i+1);
+        for (uint j = 1; j <= i % maxlength; j++) {
+            s[j - 1] = reversed[i - j];
+        }
+        return bytesToString(s);
+    }
+
+    function bytesToString(bytes memory _bytes) public pure returns (string memory) {
+        uint8 i = 0;
+        while(i < 32 && _bytes[i] != 0) {
+            i++;
+        }
+        bytes memory bytesArray = new bytes(i);
+        for (i = 0; i < 32 && _bytes[i] != 0; i++) {
+            bytesArray[i] = _bytes[i];
+        }
+        return string(bytesArray);
     }
 
     function toString(uint256 value) internal pure returns (string memory) {
