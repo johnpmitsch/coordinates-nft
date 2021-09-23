@@ -1333,7 +1333,7 @@ contract Coordinates is ERC721Enumerable, ReentrancyGuard, Ownable {
     function coordinateData(uint256 tokenId) private view returns (string memory) {
         Coordinate memory coordinate = getCoordinatesFromId(tokenId);
 
-        string memory json = Base64.encode(bytes(string(abi.encodePacked('{"name": "Coordinates #', toString(tokenId), '", "longitude": "', intToStr(coordinate.longitude), '", "latitude": "', intToStr(coordinate.latitude), '", "description": "A piece of the world"}'))));
+        string memory json = Base64.encode(bytes(string(abi.encodePacked('{"name": "Coordinate #', toString(tokenId), '", "id": "', toString(tokenId), '", "longitude": "', intToStr(coordinate.longitude), '", "latitude": "', intToStr(coordinate.latitude), '", "description": "A piece of the world"}'))));
         string memory output = string(abi.encodePacked('data:application/json;base64,', json));
 
         return output;

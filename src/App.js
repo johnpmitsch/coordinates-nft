@@ -3,7 +3,7 @@ import { useState } from "react";
 import { ethers } from "ethers";
 import Coordinates from "./artifacts/contracts/Coordinates.sol/Coordinates.json";
 
-const coordinateAddress = "0x75d27e6B5deED6CD514464F82438A86C3470fCA5";
+const coordinateAddress = "0x65f6D82446BE211Ff4729D2DB2fFa95f83f2120E";
 
 function App() {
   async function requestAccount() {
@@ -19,7 +19,7 @@ function App() {
         provider
       );
       try {
-        const data = await contract.claim(3);
+        const data = await contract.claim(2);
         console.log("data: ", data);
         console.log({ provider });
       } catch (err) {
@@ -38,7 +38,7 @@ function App() {
         Coordinates.abi,
         signer
       );
-      const transaction = await contract.claim(1);
+      const transaction = await contract.claim(5000);
       await transaction.wait();
       fetchCoordinates();
     }

@@ -33,7 +33,7 @@ describe("Coordinates check", () => {
     expect(true).to.equal(true);
   });
 
-  it("Deploy and mint all tokens", async function () {
+  it("Deploy and mint tokens", async function () {
     const Coordinates = await hre.ethers.getContractFactory("Coordinates");
     const coordinates = await Coordinates.deploy();
     await coordinates.deployed();
@@ -49,9 +49,10 @@ describe("Coordinates check", () => {
       const uri = await coordinates.tokenURI(i);
       b64json = uri.split("base64,")[1];
       jsonString = Buffer.from(b64json, "base64").toString();
+      console.log(jsonString);
 
-      const { latitude: lat, longitude: lon } = JSON.parse(jsonString);
-      console.log({ lat, lon });
+      const { id, latitude: lat, longitude: lon } = JSON.parse(jsonString);
+      console.log({ id, lat, lon });
       allLats.push(Number(lat));
       allLons.push(Number(lon));
     }
