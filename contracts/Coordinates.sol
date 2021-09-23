@@ -1301,6 +1301,7 @@ contract Coordinates is ERC721Enumerable, ReentrancyGuard, Ownable {
 
     uint256 public totalLimit = 65341; // 361 * 181
     uint256 public userLimit = 60000;
+    uint256 public tokenCounter = 1;
     int256 private chunks = 3439;
     int256 private offsetMultiplier = int256(totalLimit) / chunks;
 
@@ -1343,10 +1344,11 @@ contract Coordinates is ERC721Enumerable, ReentrancyGuard, Ownable {
         return coordinates[tokenId];
     }
 
-    function claim(uint256 tokenId) public {
-        require(tokenId > 0 && tokenId <= userLimit, "Token ID invalid");
-        _safeMint(_msgSender(), tokenId);
-        coordinates[tokenId] = coordinateData(tokenId);
+    function claim() public {
+        require(tokenCounter <= userLimit, "No more coordinates left!");
+        _safeMint(_msgSender(), tokenCounter);
+        coordinates[tokenCounter] = coordinateData(tokenCounter);
+        tokenCounter += 1;
     }
 
     function ownerClaim(uint256 tokenId) public nonReentrant onlyOwner {

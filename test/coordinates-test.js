@@ -45,7 +45,7 @@ describe("Coordinates check", () => {
     const total = 100;
     console.log("Minting... it may take a while");
     for (let i = 1; i <= total; i++) {
-      await coordinates.claim(i);
+      await coordinates.claim();
       const uri = await coordinates.tokenURI(i);
       b64json = uri.split("base64,")[1];
       jsonString = Buffer.from(b64json, "base64").toString();
