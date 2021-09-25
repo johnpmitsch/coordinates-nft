@@ -95,63 +95,6 @@ function App() {
       }
     );
 
-    // urban areas overlay
-    map.addSource("urban-areas", {
-      type: "geojson",
-      data:
-        "https://docs.mapbox.com/mapbox-gl-js/assets/ne_50m_urban_areas.geojson",
-    });
-
-    map.addLayer({
-      id: "urban-areas-fill",
-      type: "fill",
-      source: "urban-areas",
-      layout: {},
-      paint: {
-        "fill-color": "#fa8c25",
-        "fill-opacity": 0.3,
-      },
-    });
-
-    //map.addSource("coordinateArea", {
-    //  type: "geojson",
-    //  data: {
-    //    type: "FeatureCollection",
-    //    features: [
-    //      {
-    //        type: "Feature",
-    //        geometry: {
-    //          type: "Polygon",
-    //          coordinates: [
-    //            //[lng - 0.5, lat + 0.5],
-    //            //[lng + 0.5, lat + 0.5],
-    //            //[lng + 0.5, lat - 0.5],
-    //            //[lng - 0.5, lat - 0.5],
-    //            //[lng - 0.5, lat + 0.5],
-    //            [-1, 1],
-    //            [1, 1],
-    //            [-1, -1],
-    //            [1, -1],
-    //            [-1, 1],
-    //          ],
-    //        },
-    //      },
-    //    ],
-    //  },
-    //});
-
-    //map.addLayer({
-    //  id: "coordinateArea",
-    //  type: "fill",
-    //  source: "coordinateArea",
-    //  layout: {},
-    //  paint: {
-    //    "fill-color": "#7a25fa",
-    //    "fill-opacity": 0.9,
-    //  },
-    //});
-    //const marker1 = new mapboxgl.Marker().setLngLat([lng, lat]).addTo(map);
-
     map.flyTo({
       center: { lng, lat },
       speed: 0.6,
