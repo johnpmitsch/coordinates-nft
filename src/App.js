@@ -11,6 +11,7 @@ mapboxgl.accessToken =
 
 function App() {
   const [zoom, setZoom] = useState(2);
+  const [map, setMap] = useState(null);
   const [coordinates, setCoordinates] = useState({});
   const node = useRef(null);
 
@@ -36,25 +37,115 @@ function App() {
   }, []);
 
   useEffect(() => {
-    const { lon = 0, lat = 0 } = coordinates;
-    const map = new mapboxgl.Map({
+    const { lng = 0, lat = 0 } = coordinates;
+    const initMap = new mapboxgl.Map({
       container: node.current,
       style: "mapbox://styles/mapbox/satellite-v9",
-      center: [lon, lat],
+      center: [lng, lat],
       zoom: zoom,
     });
+    setMap(initMap);
+    // Clean up on unmount
+    return () => initMap.remove();
   }, []);
+
+  useEffect(() => {
+    if (!map) return;
+    const { lng, lat, id } = coordinates;
+    map.loadImage(
+      "https://docs.mapbox.com/mapbox-gl-js/assets/custom_marker.png",
+      (error, image) => {
+        if (error) throw error;
+        map.addImage("custom-marker", image);
+        // Add a GeoJSON source with a points
+        map.addSource("points", {
+          type: "geojson",
+          data: {
+            type: "FeatureCollection",
+            features: [
+              {
+                // feature for Mapbox DC
+                type: "Feature",
+                geometry: {
+                  type: "Point",
+                  coordinates: [lng, lat],
+                },
+                properties: {
+                  title: `Coordinate #${id}`,
+                },
+              },
+            ],
+          },
+        });
+
+        // Add a symbol layer
+        map.addLayer({
+          id: "points",
+          type: "symbol",
+          source: "points",
+          layout: {
+            "icon-image": "custom-marker",
+            // get the title name from the source's "title" property
+            "text-field": ["get", "title"],
+            "text-font": ["Open Sans Semibold", "Arial Unicode MS Bold"],
+            "text-offset": [0, 1.25],
+            "text-anchor": "top",
+          },
+        });
+      }
+    );
+
+    map.addSource("coordinateArea", {
+      type: "geojson",
+      data: {
+        type: "FeatureCollection",
+        features: [
+          {
+            // feature for Mapbox DC
+            type: "Feature",
+            geometry: {
+              type: "Polygon",
+              coordinates: [
+                [lng - 0.5, lat + 0.5],
+                [lng + 0.5, lat + 0.5],
+                [lng + 0.5, lat - 0.5],
+                [lng - 0.5, lat - 0.5],
+                [lng - 0.5, lat + 0.5],
+              ],
+            },
+          },
+        ],
+      },
+    });
+
+    map.addLayer({
+      id: "coordinateAreaFill",
+      type: "fill",
+      source: "coordinateArea",
+      layout: {},
+      paint: {
+        "fill-color": "#f08",
+        "fill-opacity": 0.4,
+      },
+    });
+    //const marker1 = new mapboxgl.Marker().setLngLat([lng, lat]).addTo(map);
+    map.flyTo({
+      center: { lng, lat },
+      speed: 0.6,
+      zoom: 9,
+    });
+  }, [coordinates]);
 
   function dataToCoordinates(data) {
     const b64json = data.split("base64,")[1];
     const jsonString = Buffer.from(b64json, "base64").toString();
-    const { id, latitude: lat, longitude: lon } = JSON.parse(jsonString);
-
-    return { id, lat, lon };
+    const { id, latitude: lat, longitude: lng } = JSON.parse(jsonString);
+    return { id, lat, lng };
   }
 
   return (
     <div className="App">
+      <div className="App-header"></div>
       <div>
         <div ref={node} className="mapContainer" />
       </div>
@@ -106,12 +197,12 @@ function App() {
     console.log("Hi");
     if (map && map.current) return; // initialize map only once
     const initializeMap = () => {
-      const { lat, lon } = coordinates;
+      const { lat, lng } = coordinates;
       if (mapContainer.current) {
         map.current = new mapboxgl.Map({
           container: mapContainer.current,
           style: "mapbox://styles/mapbox/satellite-v9",
-          center: [lon, lat],
+          center: [lng, lat],
           zoom: 13,
         });
       }
@@ -131,9 +222,9 @@ function App() {
   function dataToCoordinates(data) {
     const b64json = data.split("base64,")[1];
     const jsonString = Buffer.from(b64json, "base64").toString();
-    const { id, latitude: lat, longitude: lon } = JSON.parse(jsonString);
+    const { id, latitude: lat, lnggitude: lng } = JSON.parse(jsonString);
 
-    return { id, lat, lon };
+    return { id, lat, lng };
   }
 
   async function mintCoordinates() {
@@ -151,16 +242,16 @@ function App() {
     }
   }
 
-  const { lat, lon } = coordinates;
+  const { lat, lng } = coordinates;
   return (
     <div className="App">
       <header className="App-header">
         <button onClick={mintCoordinates}>Mint Coordinates</button>
-        {lat && lon && (
+        {lat && lng && (
           <>
             <div>
               <div>{`latitude: ${lat}`}</div>
-              <div>{`longitude: ${lon}`}</div>
+              <div>{`lnggitude: ${lng}`}</div>
             </div>
             <div>
               <div
