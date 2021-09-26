@@ -10,108 +10,147 @@ mapboxgl.accessToken =
   "pk.eyJ1Ijoiam9obm1pdHNjaCIsImEiOiJja3RtZGhoaDUwOXRtMnZvNzBuaXoxb3RhIn0.5xbVwWkmOiGBdOVL5jpBgw";
 
 function App() {
-  const [zoom, setZoom] = useState(2);
   const [map, setMap] = useState(null);
-  const [coordinates, setCoordinates] = useState({});
+  const [coordinates, setCoordinates] = useState([]);
+  const [loading, setLoading] = useState(false);
   const node = useRef(null);
 
   useEffect(() => {
-    async function getCoordinates() {
-      if (typeof window.ethereum !== "undefined") {
-        const provider = new ethers.providers.Web3Provider(window.ethereum);
-        const contract = new ethers.Contract(
-          coordinateAddress,
-          Coordinates.abi,
-          provider
-        );
-        try {
-          const data = await contract.tokenURI(2);
-          setCoordinates(dataToCoordinates(data));
-          console.log("data: ", dataToCoordinates(data));
-        } catch (err) {
-          console.log("Error: ", err);
-        }
-      }
-    }
-    getCoordinates();
-  }, []);
-
-  useEffect(() => {
-    const { lng = 0, lat = 0 } = coordinates;
     const initMap = new mapboxgl.Map({
       container: node.current,
       style: "mapbox://styles/mapbox/satellite-v9",
-      center: [lng, lat],
-      zoom: zoom,
+      center: [0, 0],
+      zoom: 3,
     });
-    setMap(initMap);
     // Clean up on unmount
+    initMap.loadImage(
+      "https://docs.mapbox.com/mapbox-gl-js/assets/custom_marker.png",
+      (error, image) => {
+        if (error) throw error;
+        initMap.addImage("custom-marker", image);
+      }
+    );
+
+    setMap(initMap);
     return () => initMap.remove();
   }, []);
 
   useEffect(() => {
     if (!map) return;
-    const { lng, lat, id } = coordinates;
-    map.loadImage(
-      "https://docs.mapbox.com/mapbox-gl-js/assets/custom_marker.png",
-      (error, image) => {
-        if (error) throw error;
-        map.addImage("custom-marker", image);
-        // Add a GeoJSON source with a points
-        map.addSource("points", {
-          type: "geojson",
-          data: {
-            type: "FeatureCollection",
-            features: [
-              {
-                // feature for Mapbox DC
-                type: "Feature",
-                geometry: {
-                  type: "Point",
-                  coordinates: [lng, lat],
-                },
-                properties: {
-                  title: `Coordinate #${id}`,
-                },
-              },
-            ],
-          },
-        });
+    if (!coordinates) return;
+    // Add a GeoJSON source with a markers
+    const id = "markers";
+    const markersSource = map.getSource(id);
+    const markersLayer = map.getLayer(id);
+    // Remove layer and source and re add with new coordinates
+    if (markersLayer) map.removeLayer(id);
+    if (markersSource) map.removeSource(id);
 
-        // Add a symbol layer
-        map.addLayer({
-          id: "points",
-          type: "symbol",
-          source: "points",
-          layout: {
-            "icon-image": "custom-marker",
-            // get the title name from the source's "title" property
-            "text-field": ["get", "title"],
-            "text-font": ["Open Sans Semibold", "Arial Unicode MS Bold"],
-            "text-offset": [0, 1.25],
-            "text-anchor": "top",
-          },
-        });
-      }
-    );
-
-    map.flyTo({
-      center: { lng, lat },
-      speed: 0.6,
-      zoom: 9,
+    console.log(coordinates);
+    console.log(buildMarkers(coordinates));
+    map.addSource(id, {
+      type: "geojson",
+      data: {
+        type: "FeatureCollection",
+        features: buildMarkers(coordinates),
+      },
     });
+
+    console.log(map.getSource(id));
+    // Add a symbol layer
+    map.addLayer({
+      id,
+      type: "symbol",
+      source: id,
+      layout: {
+        "icon-image": "custom-marker",
+      },
+    });
+
+    map.flyTo({ center: [0, 0], zoom: 1 });
   }, [coordinates]);
 
-  function dataToCoordinates(data) {
+  const buildMarkers = (coors) => {
+    return coors.map((coor) => {
+      const { id, lat, lng } = coor;
+
+      return {
+        type: "Feature",
+        geometry: {
+          type: "Point",
+          coordinates: [lat, lng],
+        },
+        properties: {
+          title: `Coordinate #${id}`,
+          lng,
+          lat,
+        },
+      };
+    });
+  };
+
+  async function mintCoordinates() {
+    if (typeof window.ethereum !== "undefined") {
+      await requestAccount();
+      const provider = new ethers.providers.Web3Provider(window.ethereum);
+      const signer = provider.getSigner();
+      const contract = new ethers.Contract(
+        coordinateAddress,
+        Coordinates.abi,
+        signer
+      );
+      const transaction = await contract.claim();
+      await transaction.wait();
+    }
+  }
+
+  async function getCoordinates() {
+    if (typeof window.ethereum !== "undefined") {
+      setLoading(true);
+      await requestAccount();
+      const provider = new ethers.providers.Web3Provider(window.ethereum);
+      const signer = provider.getSigner();
+      const userAddress = await signer.getAddress();
+      const contract = new ethers.Contract(
+        coordinateAddress,
+        Coordinates.abi,
+        provider
+      );
+      try {
+        const userCoordinates = [];
+        const balance = await contract.balanceOf(userAddress);
+        for (let i = 0; i < balance; i++) {
+          const tokenId = await contract.tokenOfOwnerByIndex(userAddress, i);
+          const uri = await contract.tokenURI(tokenId);
+          userCoordinates.push(dataToCoordinates(uri));
+        }
+        setCoordinates(userCoordinates);
+      } catch (err) {
+        console.log("Error: ", err);
+      } finally {
+        setLoading(false);
+      }
+    }
+  }
+
+  const dataToCoordinates = (data) => {
     const b64json = data.split("base64,")[1];
     const jsonString = Buffer.from(b64json, "base64").toString();
     const { id, latitude: lat, longitude: lng } = JSON.parse(jsonString);
     return { id, lat, lng };
+  };
+
+  async function requestAccount() {
+    await window.ethereum.request({ method: "eth_requestAccounts" });
   }
 
   return (
     <div className="App">
-      <div className="App-header"></div>
+      <div className="App-header">
+        {loading && <div>Loading...</div>}
+        <button onClick={mintCoordinates}>Mint Coordinates</button>
+        <button onClick={getCoordinates}>Show My Coordinates</button>
+      </div>
       <div>
         <div ref={node} className="mapContainer" />
       </div>
