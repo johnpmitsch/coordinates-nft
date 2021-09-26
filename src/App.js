@@ -20,7 +20,7 @@ function App() {
       container: node.current,
       style: "mapbox://styles/mapbox/satellite-v9",
       center: [0, 0],
-      zoom: 3,
+      zoom: 2,
     });
     // Clean up on unmount
     initMap.loadImage(
@@ -32,7 +32,7 @@ function App() {
     );
 
     setMap(initMap);
-    return () => initMap.remove();
+    return () => setMap(null) && initMap.remove();
   }, []);
 
   useEffect(() => {
@@ -56,7 +56,6 @@ function App() {
       },
     });
 
-    console.log(map.getSource(id));
     // Add a symbol layer
     map.addLayer({
       id,
@@ -64,11 +63,40 @@ function App() {
       source: id,
       layout: {
         "icon-image": "custom-marker",
+        "icon-ignore-placement": true,
+        "icon-allow-overlap": true,
+        "icon-size": 0.8,
       },
     });
 
     map.flyTo({ center: [0, 0], zoom: 1 });
-  }, [coordinates]);
+
+    // location of the feature, with description HTML from its properties.
+    map.on("click", id, (e) => {
+      // Copy coordinates array.
+      console.log(e.features);
+      const coors = e.features[0].geometry.coordinates.slice();
+      const description = e.features[0].properties.description;
+      console.log(coors);
+
+      // Ensure that if the map is zoomed out such that multiple
+      // copies of the feature are visible, the popup appears
+      // over the copy being pointed to.
+      while (Math.abs(e.lngLat.lng - coors[0]) > 180) {
+        coors[0] += e.lngLat.lng > coors[0] ? 360 : -360;
+      }
+
+      new mapboxgl.Popup().setLngLat(coors).setHTML(description).addTo(map);
+    });
+
+    map.on("mouseenter", id, () => {
+      map.getCanvas().style.cursor = "pointer";
+    });
+
+    map.on("mouseleave", id, () => {
+      map.getCanvas().style.cursor = "";
+    });
+  }, [coordinates]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const buildMarkers = (coors) => {
     return coors.map((coor) => {
@@ -81,9 +109,14 @@ function App() {
           coordinates: [lat, lng],
         },
         properties: {
+          description: `
+            <div class="coor-marker">
+              <h3>Coordinate #${id}</h3>
+              <p><strong>Latitude: </strong>${lat}</p>
+              <p><strong>Longitude: </strong>${lng}</p>
+            </div>
+          `,
           title: `Coordinate #${id}`,
-          lng,
-          lat,
         },
       };
     });

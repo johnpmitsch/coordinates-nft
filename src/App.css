@@ -30,6 +30,15 @@
   height: 90vh;
 }
 
+.mapboxgl-popup {
+  max-width: 400px;
+  font: 12px/20px "Helvetica Neue", Arial, Helvetica, sans-serif;
+}
+
+.coor-marker {
+  min-width: 20vh;
+}
+
 @keyframes App-logo-spin {
   from {
     transform: rotate(0deg);
