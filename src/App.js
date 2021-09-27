@@ -1,7 +1,9 @@
 import React, { useEffect, useRef, useState } from "react";
+import { Button, Stack, Center } from "@chakra-ui/react";
 import mapboxgl from "!mapbox-gl"; // eslint-disable-line import/no-webpack-loader-syntax
 import { ethers } from "ethers";
 import Coordinates from "./artifacts/contracts/Coordinates.sol/Coordinates.json";
+import canvaPin from "./images/canva_pin.png";
 import "./App.css";
 
 const coordinateAddress = "0xEc77fF6f35de5dDC4755da6d41B4673f8b9800e1";
@@ -22,14 +24,9 @@ function App() {
       center: [0, 0],
       zoom: 2,
     });
-    // Clean up on unmount
-    initMap.loadImage(
-      "https://docs.mapbox.com/mapbox-gl-js/assets/custom_marker.png",
-      (error, image) => {
-        if (error) throw error;
-        initMap.addImage("custom-marker", image);
-      }
-    );
+    const pin = new Image(40, 40);
+    pin.src = canvaPin;
+    initMap.addImage("custom-marker", pin);
 
     setMap(initMap);
     return () => setMap(null) && initMap.remove();
@@ -45,9 +42,8 @@ function App() {
     // Remove layer and source and re add with new coordinates
     if (markersLayer) map.removeLayer(id);
     if (markersSource) map.removeSource(id);
+    if (map.getSource("territory")) map.removeSource("territory");
 
-    console.log(coordinates);
-    console.log(buildMarkers(coordinates));
     map.addSource(id, {
       type: "geojson",
       data: {
@@ -65,7 +61,42 @@ function App() {
         "icon-image": "custom-marker",
         "icon-ignore-placement": true,
         "icon-allow-overlap": true,
-        "icon-size": 0.8,
+        "icon-size": 0.9,
+      },
+    });
+
+    map.addSource("territory", {
+      type: "geojson",
+      data: {
+        type: "Feature",
+        geometry: {
+          type: "Polygon",
+          // These coordinates outline Maine.
+          coordinates: [
+            [
+              [-67.13734, 45.13745],
+              [-66.96466, 44.8097],
+              [-68.03252, 44.3252],
+              [-69.06, 43.98],
+              [-70.11617, 43.68405],
+              [-70.64573, 43.09008],
+              [-70.75102, 43.08003],
+              [-70.79761, 43.21973],
+              [-70.98176, 43.36789],
+              [-70.94416, 43.46633],
+              [-71.08482, 45.30524],
+              [-70.66002, 45.46022],
+              [-70.30495, 45.91479],
+              [-70.00014, 46.69317],
+              [-69.23708, 47.44777],
+              [-68.90478, 47.18479],
+              [-68.2343, 47.35462],
+              [-67.79035, 47.06624],
+              [-67.79141, 45.70258],
+              [-67.13734, 45.13745],
+            ],
+          ],
+        },
       },
     });
 
@@ -74,10 +105,8 @@ function App() {
     // location of the feature, with description HTML from its properties.
     map.on("click", id, (e) => {
       // Copy coordinates array.
-      console.log(e.features);
       const coors = e.features[0].geometry.coordinates.slice();
       const description = e.features[0].properties.description;
-      console.log(coors);
 
       // Ensure that if the map is zoomed out such that multiple
       // copies of the feature are visible, the popup appears
@@ -106,7 +135,7 @@ function App() {
         type: "Feature",
         geometry: {
           type: "Point",
-          coordinates: [lat, lng],
+          coordinates: [lng, lat],
         },
         properties: {
           description: `
@@ -180,9 +209,25 @@ function App() {
   return (
     <div className="App">
       <div className="App-header">
-        {loading && <div>Loading...</div>}
-        <button onClick={mintCoordinates}>Mint Coordinates</button>
-        <button onClick={getCoordinates}>Show My Coordinates</button>
+        <Center style={{ height: "100%" }}>
+          <Stack spacing={4} direction="row" align="center">
+            <Button
+              colorScheme="coorsGreen"
+              size="md"
+              onClick={mintCoordinates}
+            >
+              Mint Coordinates
+            </Button>
+            <Button
+              isLoading={loading}
+              colorScheme="coorsGreen"
+              size="md"
+              onClick={getCoordinates}
+            >
+              Show My Coordinates
+            </Button>
+          </Stack>
+        </Center>
       </div>
       <div>
         <div ref={node} className="mapContainer" />
@@ -190,4 +235,5 @@ function App() {
     </div>
   );
 }
+
 export default App;
