@@ -6,6 +6,7 @@ import Coordinates from "./artifacts/contracts/Coordinates.sol/Coordinates.json"
 import canvaPin from "./images/canva_pin.png";
 import pulsingDot from "./pulsingDot";
 import "./App.css";
+import { number } from "yargs";
 
 const coordinateAddress = "0xEc77fF6f35de5dDC4755da6d41B4673f8b9800e1";
 
@@ -27,9 +28,9 @@ function App() {
     });
     const pin = new Image(40, 40);
     pin.src = canvaPin;
-    console.log(pin);
     initMap.addImage("custom-marker", pin);
 
+    initMap.on("load", () => {});
     setMap(initMap);
     return () => setMap(null) && initMap.remove();
   }, []);
@@ -39,11 +40,9 @@ function App() {
     if (!coordinates) return;
     // Add a GeoJSON source with a markers
     const id = "markers";
-    const markersSource = map.getSource(id);
-    const markersLayer = map.getLayer(id);
     // Remove layer and source and re add with new coordinates
-    if (markersLayer) map.removeLayer(id);
-    if (markersSource) map.removeSource(id);
+    if (map.getLayer(id)) map.removeLayer(id);
+    if (map.getSource(id)) map.removeSource(id);
 
     map.addSource(id, {
       type: "geojson",
@@ -53,7 +52,8 @@ function App() {
       },
     });
 
-    // Add a symbol layer
+    buildPolygons(map, coordinates);
+
     map.addLayer({
       id,
       type: "symbol",
@@ -114,6 +114,48 @@ function App() {
           title: `Coordinate #${id}`,
         },
       };
+    });
+  };
+
+  const buildPolygons = (map, coors) => {
+    coors.forEach((coor) => {
+      const { id, lat, lng } = coor;
+      console.log(id);
+      const polygonId = `territory${id}`;
+      // Remove layer and source and re add with new coordinates
+      if (map.getLayer(polygonId)) map.removeLayer(polygonId);
+      if (map.getSource(polygonId)) map.removeSource(polygonId);
+      const lngInt = parseInt(lng);
+      const latInt = parseInt(lat);
+      map.addSource(polygonId, {
+        type: "geojson",
+        data: {
+          type: "Feature",
+          geometry: {
+            type: "Polygon",
+            coordinates: [
+              [
+                [lngInt - 0.5, latInt - 0.5],
+                [lngInt + 0.5, latInt - 0.5],
+                [lngInt + 0.5, latInt + 0.5],
+                [lngInt - 0.5, latInt + 0.5],
+                [lngInt - 0.5, latInt + 0.5],
+              ],
+            ],
+          },
+        },
+      });
+
+      map.addLayer({
+        id: polygonId,
+        type: "fill",
+        source: polygonId, // reference the data source
+        layout: {},
+        paint: {
+          "fill-color": "#e2e3cb", // blue color fill
+          "fill-opacity": 0.3,
+        },
+      });
     });
   };
 
