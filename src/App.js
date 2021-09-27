@@ -4,6 +4,7 @@ import mapboxgl from "!mapbox-gl"; // eslint-disable-line import/no-webpack-load
 import { ethers } from "ethers";
 import Coordinates from "./artifacts/contracts/Coordinates.sol/Coordinates.json";
 import canvaPin from "./images/canva_pin.png";
+import pulsingDot from "./pulsingDot";
 import "./App.css";
 
 const coordinateAddress = "0xEc77fF6f35de5dDC4755da6d41B4673f8b9800e1";
@@ -20,12 +21,13 @@ function App() {
   useEffect(() => {
     const initMap = new mapboxgl.Map({
       container: node.current,
-      style: "mapbox://styles/mapbox/satellite-v9",
+      style: "mapbox://styles/mapbox/dark-v10",
       center: [0, 0],
       zoom: 2,
     });
     const pin = new Image(40, 40);
     pin.src = canvaPin;
+    console.log(pin);
     initMap.addImage("custom-marker", pin);
 
     setMap(initMap);
@@ -42,7 +44,6 @@ function App() {
     // Remove layer and source and re add with new coordinates
     if (markersLayer) map.removeLayer(id);
     if (markersSource) map.removeSource(id);
-    if (map.getSource("territory")) map.removeSource("territory");
 
     map.addSource(id, {
       type: "geojson",
@@ -62,41 +63,6 @@ function App() {
         "icon-ignore-placement": true,
         "icon-allow-overlap": true,
         "icon-size": 0.9,
-      },
-    });
-
-    map.addSource("territory", {
-      type: "geojson",
-      data: {
-        type: "Feature",
-        geometry: {
-          type: "Polygon",
-          // These coordinates outline Maine.
-          coordinates: [
-            [
-              [-67.13734, 45.13745],
-              [-66.96466, 44.8097],
-              [-68.03252, 44.3252],
-              [-69.06, 43.98],
-              [-70.11617, 43.68405],
-              [-70.64573, 43.09008],
-              [-70.75102, 43.08003],
-              [-70.79761, 43.21973],
-              [-70.98176, 43.36789],
-              [-70.94416, 43.46633],
-              [-71.08482, 45.30524],
-              [-70.66002, 45.46022],
-              [-70.30495, 45.91479],
-              [-70.00014, 46.69317],
-              [-69.23708, 47.44777],
-              [-68.90478, 47.18479],
-              [-68.2343, 47.35462],
-              [-67.79035, 47.06624],
-              [-67.79141, 45.70258],
-              [-67.13734, 45.13745],
-            ],
-          ],
-        },
       },
     });
 
