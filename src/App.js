@@ -39,17 +39,13 @@ function App() {
     if (!coordinates) return;
     // Add a GeoJSON source with a markers
     const id = "markers";
-    const markersSource = map.getSource("dot-point");
-    const markersLayer = map.getLayer("layer-with-pulsing-dot");
+    const markersSource = map.getSource(id);
+    const markersLayer = map.getLayer(id);
     // Remove layer and source and re add with new coordinates
-    if (map.hasImage("pulsing-dot")) map.removeImage("pulsing-dot");
-    if (markersSource) map.removeSource("dot-point");
-    if (markersLayer) map.removeLayer("layer-with-pulsing-dot");
-    const size = 100;
-    const dot = pulsingDot(map, size);
-    map.addImage("pulsing-dot", dot, { pixelRatio: 2 });
+    if (markersLayer) map.removeLayer(id);
+    if (markersSource) map.removeSource(id);
 
-    map.addSource("dot-point", {
+    map.addSource(id, {
       type: "geojson",
       data: {
         type: "FeatureCollection",
@@ -59,11 +55,11 @@ function App() {
 
     // Add a symbol layer
     map.addLayer({
-      id: "layer-with-pulsing-dot",
+      id,
       type: "symbol",
-      source: "dot-point",
+      source: id,
       layout: {
-        "icon-image": "pulsing-dot",
+        "icon-image": "custom-marker",
         "icon-ignore-placement": true,
         "icon-allow-overlap": true,
         "icon-size": 0.9,
