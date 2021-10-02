@@ -3,3 +3,5 @@ export const shortenedAddress = (address) => {
   const ending = address.substr(-4);
   return `${begin}...${ending}`;
 };
+
+export const getUserAddress = () => window?.ethereum?.selectedAddress;

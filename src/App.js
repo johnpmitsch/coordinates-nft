@@ -1,10 +1,9 @@
 import React, { useEffect, useRef, useState } from "react";
-import { Button, Stack, Center } from "@chakra-ui/react";
 import mapboxgl from "!mapbox-gl"; // eslint-disable-line import/no-webpack-loader-syntax
 import { ethers } from "ethers";
 import Coordinates from "./artifacts/contracts/Coordinates.sol/Coordinates.json";
+import TopBar from "./components/TopBar";
 import canvaPin from "./canva_pin.png";
-import { shortenedAddress } from "./helpers";
 import "./App.css";
 
 const coordinateAddress = "0xEc77fF6f35de5dDC4755da6d41B4673f8b9800e1";
@@ -17,6 +16,7 @@ function App() {
   const [coordinates, setCoordinates] = useState([]);
   const [loading, setLoading] = useState(false);
   const node = useRef(null);
+  const userAddress = window?.ethereum?.selectedAddress;
 
   useEffect(() => {
     const initMap = new mapboxgl.Map({
@@ -224,28 +224,15 @@ function App() {
   return (
     <div className="App">
       <div className="App-header">
-        <Center style={{ height: "100%" }}>
-          <Stack spacing={4} direction="row" align="center">
-            <Button
-              colorScheme="coorsGreen"
-              size="md"
-              onClick={mintCoordinates}
-            >
-              Mint Coordinates
-            </Button>
-            <Button
-              isLoading={loading}
-              colorScheme="coorsGreen"
-              size="md"
-              onClick={getCoordinates}
-            >
-              Show My Coordinates
-            </Button>
-            {window?.ethereum?.selectedAddress && (
-              <div>{shortenedAddress(window.ethereum.selectedAddress)}</div>
-            )}
-          </Stack>
-        </Center>
+        <TopBar
+          {...{
+            userAddress,
+            coordinates,
+            mintCoordinates,
+            getCoordinates,
+            loading,
+          }}
+        />
       </div>
       <div>
         <div ref={node} className="mapContainer" />

@@ -15,7 +15,8 @@
 
 .App-header {
   background-color: #282c34;
-  height: 10vh;
+  height: 100%;
+  padding: 1vh;
   align-items: center;
   justify-content: center;
   font-size: calc(10px + 2vmin);
