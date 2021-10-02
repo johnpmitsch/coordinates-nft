@@ -4,6 +4,7 @@ import mapboxgl from "!mapbox-gl"; // eslint-disable-line import/no-webpack-load
 import { ethers } from "ethers";
 import Coordinates from "./artifacts/contracts/Coordinates.sol/Coordinates.json";
 import canvaPin from "./canva_pin.png";
+import { shortenedAddress } from "./helpers";
 import "./App.css";
 
 const coordinateAddress = "0xEc77fF6f35de5dDC4755da6d41B4673f8b9800e1";
@@ -112,7 +113,7 @@ function App() {
         properties: {
           description: `
             <div class="coor-marker">
-              <h3>Coordinate #${id}</h3>
+              <h2><strong>Coordinate #${id}</strong></h2>
               <p><strong>Latitude: </strong>${lat}</p>
               <p><strong>Longitude: </strong>${lng}</p>
             </div>
@@ -158,7 +159,7 @@ function App() {
         layout: {},
         paint: {
           //"fill-color": "#e2e3cb",
-          "fill-color": "#ffa83d",
+          "fill-color": "#37ff30",
           "fill-opacity": 0.3,
         },
       });
@@ -240,6 +241,9 @@ function App() {
             >
               Show My Coordinates
             </Button>
+            {window?.ethereum?.selectedAddress && (
+              <div>{shortenedAddress(window.ethereum.selectedAddress)}</div>
+            )}
           </Stack>
         </Center>
       </div>
