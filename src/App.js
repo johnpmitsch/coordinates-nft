@@ -3,10 +3,8 @@ import { Button, Stack, Center } from "@chakra-ui/react";
 import mapboxgl from "!mapbox-gl"; // eslint-disable-line import/no-webpack-loader-syntax
 import { ethers } from "ethers";
 import Coordinates from "./artifacts/contracts/Coordinates.sol/Coordinates.json";
-import canvaPin from "./images/canva_pin.png";
-import pulsingDot from "./pulsingDot";
+import canvaPin from "./canva_pin.png";
 import "./App.css";
-import { number } from "yargs";
 
 const coordinateAddress = "0xEc77fF6f35de5dDC4755da6d41B4673f8b9800e1";
 
@@ -26,11 +24,19 @@ function App() {
       center: [0, 0],
       zoom: 2,
     });
-    const pin = new Image(40, 40);
-    pin.src = canvaPin;
-    initMap.addImage("custom-marker", pin);
-
     initMap.on("load", () => {});
+    //initMap.addImage("custom-marker", pin);
+    //console.log(marker);
+    initMap.loadImage(
+      "https://docs.mapbox.com/mapbox-gl-js/assets/custom_marker.png",
+      (error, image) => {
+        if (error) throw error;
+        const pin = new Image(40, 40);
+        pin.src = canvaPin;
+        initMap.addImage("custom-marker", pin);
+      }
+    );
+
     setMap(initMap);
     return () => setMap(null) && initMap.remove();
   }, []);
@@ -120,7 +126,6 @@ function App() {
   const buildPolygons = (map, coors) => {
     coors.forEach((coor) => {
       const { id, lat, lng } = coor;
-      console.log(id);
       const polygonId = `territory${id}`;
       // Remove layer and source and re add with new coordinates
       if (map.getLayer(polygonId)) map.removeLayer(polygonId);
@@ -152,7 +157,8 @@ function App() {
         source: polygonId, // reference the data source
         layout: {},
         paint: {
-          "fill-color": "#e2e3cb", // blue color fill
+          //"fill-color": "#e2e3cb",
+          "fill-color": "#ffa83d",
           "fill-opacity": 0.3,
         },
       });
@@ -196,7 +202,7 @@ function App() {
         }
         setCoordinates(userCoordinates);
       } catch (err) {
-        console.log("Error: ", err);
+        console.error("Error: ", err);
       } finally {
         setLoading(false);
       }
