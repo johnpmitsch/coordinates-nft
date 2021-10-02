@@ -12,6 +12,7 @@ import {
   Spacer,
   Image,
 } from "@chakra-ui/react";
+import { ChevronDownIcon } from "@chakra-ui/icons";
 import Jazzicon from "jazzicon";
 import { shortenedAddress } from "../helpers";
 
@@ -23,14 +24,9 @@ const TopBar = ({
   loading,
   minted,
   limit,
+  flyToCoor,
 }) => {
   const avatarRef = useRef(null);
-
-  useEffect(() => {
-    if (avatarRef?.current?.childElementCount < 1) {
-      avatarRef?.current?.appendChild(generateNewIdenticon(userAddress));
-    }
-  }, [userAddress]);
 
   const jsNumberForAddress = (address) => {
     const addr = address.slice(2, 10);
@@ -42,23 +38,27 @@ const TopBar = ({
     return Jazzicon(diameter, numericRepresentation);
   };
 
+  useEffect(() => {
+    if (avatarRef?.current?.childElementCount < 1) {
+      avatarRef?.current?.appendChild(generateNewIdenticon(userAddress));
+    }
+  }, [userAddress]); // eslint-disable-line react-hooks/exhaustive-deps
+
   return (
     <Stack spacing={4} direction="row" align="center">
       <Image boxSize="8vh" objectFit="cover" src="../logo_128x128.png" />
       <Spacer />
-      {minted && limit && (
-        <>
-          <Box>
-            <Text fontSize="lg" alt="minted">{`${minted} / ${limit}`}</Text>
-          </Box>
-          <Spacer />
-        </>
-      )}
-      <Button colorScheme="coorsGreen" size="md" onClick={mintCoordinates}>
+      <Button
+        bgGradient="linear(to-r, coorsGreen.500, coorsGreen.600)"
+        colorScheme="coorsGreen"
+        size="md"
+        onClick={mintCoordinates}
+      >
         Mint
       </Button>
       <Button
         isLoading={loading}
+        bgGradient="linear(to-r, coorsGreen.500, coorsGreen.600)"
         colorScheme="coorsGreen"
         size="md"
         onClick={getCoordinates}
@@ -66,15 +66,48 @@ const TopBar = ({
         Show My Coordinates
       </Button>
       <Spacer />
+      {minted && limit && (
+        <>
+          <Badge
+            fontSize="md"
+            bgGradient="linear(to-r, coorsGreen.400, coorsGreen.600)"
+            px="3"
+            py="1"
+          >
+            <Text fontSize="lg" color="white">{`#${minted} / ${limit}`}</Text>
+          </Badge>
+          <Spacer />
+        </>
+      )}
+
       {coordinates && coordinates.length > 0 && (
         <>
           <Menu>
-            <MenuButton>
+            <MenuButton
+              as={Button}
+              rightIcon={<ChevronDownIcon />}
+              bgGradient="linear(to-r, coorsGreen.400, coorsBlue.300)"
+              _hover={{
+                bgGradient: "linear(to-r, coorsGreen.300, coorsBlue.200)",
+              }}
+            >
               <Text fontSize="md">{coordinates.length} COOR</Text>
             </MenuButton>
-            <MenuList>
+            <MenuList maxH="75vh" overflowY="scroll">
               {coordinates.map(({ id, lat, lng }) => (
-                <MenuItem key={id}>{id}</MenuItem>
+                <MenuItem key={id} onClick={() => flyToCoor(lat, lng)}>
+                  <Text
+                    p={1}
+                    fontWeight="extrabold"
+                    fontSize="md"
+                    color="black"
+                  >
+                    {`#${id}`}
+                  </Text>
+                  <Text p={1} fontSize="md" color="black">
+                    {`${lat}, ${lng}`}
+                  </Text>
+                </MenuItem>
               ))}
             </MenuList>
           </Menu>

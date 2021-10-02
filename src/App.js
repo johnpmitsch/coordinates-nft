@@ -3,7 +3,6 @@ import mapboxgl from "!mapbox-gl"; // eslint-disable-line import/no-webpack-load
 import { ethers } from "ethers";
 import Coordinates from "./artifacts/contracts/Coordinates.sol/Coordinates.json";
 import TopBar from "./components/TopBar";
-import canvaPin from "./canva_pin.png";
 import "./App.css";
 
 const coordinateAddress = "0xEc77fF6f35de5dDC4755da6d41B4673f8b9800e1";
@@ -47,18 +46,10 @@ function App() {
       center: [0, 0],
       zoom: 2,
     });
-    initMap.on("load", () => {});
-    //initMap.addImage("custom-marker", pin);
-    //console.log(marker);
-    initMap.loadImage(
-      "https://docs.mapbox.com/mapbox-gl-js/assets/custom_marker.png",
-      (error, image) => {
-        if (error) throw error;
-        const pin = new Image(40, 40);
-        pin.src = canvaPin;
-        initMap.addImage("custom-marker", pin);
-      }
-    );
+    initMap.loadImage("https://i.imgur.com/7f8sgd0.png", (error, image) => {
+      if (error) return console.error(error);
+      initMap.addImage("coor_pin", image);
+    });
 
     setMap(initMap);
     return () => setMap(null) && initMap.remove();
@@ -88,7 +79,7 @@ function App() {
       type: "symbol",
       source: id,
       layout: {
-        "icon-image": "custom-marker",
+        "icon-image": "coor_pin",
         "icon-ignore-placement": true,
         "icon-allow-overlap": true,
         "icon-size": 0.9,
@@ -188,6 +179,10 @@ function App() {
     });
   };
 
+  const flyToCoor = (lat, lng) => {
+    map.flyTo({ center: [lng, lat], zoom: 4 });
+  };
+
   async function mintCoordinates() {
     if (typeof window.ethereum !== "undefined") {
       await requestAccount();
@@ -200,6 +195,8 @@ function App() {
       );
       const transaction = await contract.claim();
       await transaction.wait();
+    } else {
+      alert("Please install MetaMask wallet to use Coordinates");
     }
   }
 
@@ -229,6 +226,8 @@ function App() {
       } finally {
         setLoading(false);
       }
+    } else {
+      alert("Please install MetaMask wallet to use Coordinates");
     }
   }
 
@@ -255,6 +254,7 @@ function App() {
             loading,
             minted,
             limit,
+            flyToCoor,
           }}
         />
       </div>
