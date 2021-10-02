@@ -15,8 +15,30 @@ function App() {
   const [map, setMap] = useState(null);
   const [coordinates, setCoordinates] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [minted, setMinted] = useState(null);
+  const [limit, setLimit] = useState(null);
   const node = useRef(null);
   const userAddress = window?.ethereum?.selectedAddress;
+
+  useEffect(() => {
+    async function getData() {
+      if (typeof window.ethereum !== "undefined") {
+        await requestAccount();
+        const provider = new ethers.providers.Web3Provider(window.ethereum);
+        const signer = provider.getSigner();
+        const contract = new ethers.Contract(
+          coordinateAddress,
+          Coordinates.abi,
+          signer
+        );
+        const totalMinted = await contract.totalSupply(); // It's called total supply, but it's total minted
+        const totalLimit = await contract.totalLimit(); // It's called total supply, but it's total minted
+        setMinted(totalMinted.toNumber());
+        setLimit(totalLimit.toNumber());
+      }
+    }
+    getData();
+  }, []);
 
   useEffect(() => {
     const initMap = new mapboxgl.Map({
@@ -231,6 +253,8 @@ function App() {
             mintCoordinates,
             getCoordinates,
             loading,
+            minted,
+            limit,
           }}
         />
       </div>

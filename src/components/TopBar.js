@@ -1,12 +1,16 @@
 import React, { useEffect, useRef } from "react";
 import {
   Box,
-  Image,
+  Badge,
   Button,
+  Menu,
+  MenuButton,
+  MenuList,
+  MenuItem,
   Stack,
-  Flex,
-  Center,
+  Text,
   Spacer,
+  Image,
 } from "@chakra-ui/react";
 import Jazzicon from "jazzicon";
 import { shortenedAddress } from "../helpers";
@@ -17,6 +21,8 @@ const TopBar = ({
   mintCoordinates,
   getCoordinates,
   loading,
+  minted,
+  limit,
 }) => {
   const avatarRef = useRef(null);
 
@@ -40,8 +46,16 @@ const TopBar = ({
     <Stack spacing={4} direction="row" align="center">
       <Image boxSize="8vh" objectFit="cover" src="../logo_128x128.png" />
       <Spacer />
+      {minted && limit && (
+        <>
+          <Box>
+            <Text fontSize="lg" alt="minted">{`${minted} / ${limit}`}</Text>
+          </Box>
+          <Spacer />
+        </>
+      )}
       <Button colorScheme="coorsGreen" size="md" onClick={mintCoordinates}>
-        Mint Coordinates
+        Mint
       </Button>
       <Button
         isLoading={loading}
@@ -52,12 +66,28 @@ const TopBar = ({
         Show My Coordinates
       </Button>
       <Spacer />
-      {coordinates?.length && <Box>{coordinates.length} Coordinates</Box>}
-      <Spacer />j
+      {coordinates && coordinates.length > 0 && (
+        <>
+          <Menu>
+            <MenuButton>
+              <Text fontSize="md">{coordinates.length} COOR</Text>
+            </MenuButton>
+            <MenuList>
+              {coordinates.map(({ id, lat, lng }) => (
+                <MenuItem key={id}>{id}</MenuItem>
+              ))}
+            </MenuList>
+          </Menu>
+          <Spacer />
+        </>
+      )}
+      <Spacer />
       {userAddress && (
         <>
           <Box ref={avatarRef}></Box>
-          <Box>{shortenedAddress(userAddress)}</Box>
+          <Box>
+            <Text fontSize="md">{shortenedAddress(userAddress)}</Text>
+          </Box>
         </>
       )}
     </Stack>
