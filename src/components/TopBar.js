@@ -28,6 +28,8 @@ const TopBar = ({
   limit,
   flyToCoor,
   chainId,
+  wallet,
+  connectWallet,
 }) => {
   const avatarRef = useRef(null);
 
@@ -56,6 +58,22 @@ const TopBar = ({
           }
         </Text>
       </Center>
+  if (!wallet.selectedAddress) {
+    return (
+      <Stack spacing={4} direction="row" align="center" px={2}>
+        <Image boxSize="8vh" objectFit="cover" src="../logo_128x128.png" />
+        <Spacer />
+        <Button
+          bgGradient="linear(to-r, coorsGreen.500, coorsBlue.600)"
+          colorScheme="coorsGreen"
+          size="md"
+          m={"2"}
+          onClick={connectWallet}
+          color
+        >
+          {"Connect Wallet"}
+        </Button>
+      </Stack>
     );
   }
   return (

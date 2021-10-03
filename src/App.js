@@ -3,6 +3,7 @@ import mapboxgl from "!mapbox-gl"; // eslint-disable-line import/no-webpack-load
 import { ethers } from "ethers";
 import Coordinates from "./artifacts/contracts/Coordinates.sol/Coordinates.json";
 import TopBar from "./components/TopBar";
+import detectEthereumProvider from "@metamask/detect-provider";
 import "./App.css";
 
 const coordinateAddress =
@@ -22,33 +23,93 @@ function App() {
   const [loadingMint, setLoadingMint] = useState(false);
   const [minted, setMinted] = useState(null);
   const [limit, setLimit] = useState(null);
+  // null is no metamask connected, 'present' is metamask is present, 'connected' is metamask is
+  // connected to wallet
+  const [wallet, setWallet] = useState(false);
+  const [provider, setProvider] = useState(null);
+  const [signer, setSigner] = useState(null);
+  const [userAddress, setUserAddress] = useState(null);
   const node = useRef(null);
   const userAddress = window?.ethereum?.selectedAddress;
   const chainId =
     process.env.NODE_ENV === "production" ? AVAX_MAINNET : AVAX_FUJI_TESTNET;
 
   useEffect(() => {
-    async function getData() {
-      if (typeof window.ethereum === "undefined") return;
-      if (window.ethereum.chainId !== chainId) return;
-      await requestAccount();
-      const provider = new ethers.providers.Web3Provider(window.ethereum);
-      const signer = provider.getSigner();
+    async function getWallet() {
+      const windowEth = await detectEthereumProvider();
+      if (windowEth) setWallet(windowEth);
+    }
+    getWallet();
+    if (wallet?.selectedAddress) setUserAddress(wallet.selectedAddress);
+  }, []);
 
-      const contract = new ethers.Contract(
-        coordinateAddress,
-        Coordinates.abi,
-        signer
-      );
-      if (contract) {
+  useEffect(() => {
+    if (!wallet) return;
+    async function listenToWalletChanges() {
+      wallet.on("accountsChanged", async function () {
+        if (wallet.selectedAddress) setUserAddress(wallet.selectedAddress);
+      });
+      wallet.on("chainChanged", function (networkId) {
+        if (wallet.selectedAddress) setUserAddress(wallet.selectedAddress);
+      });
+    }
+    listenToWalletChanges();
+  }, [wallet]);
+
+  useEffect(() => {
+    if (!wallet && !wallet.selectedAddress) return;
+    const prvdr = new ethers.providers.Web3Provider(wallet);
+    const sgnr = prvdr.getSigner();
+    setProvider(prvdr);
+    setSigner(sgnr);
+  }, [wallet, userAddress]);
+
+  useEffect(() => {
+    if (wallet?.selectedAddress && signer) {
+      async function getData() {
+        const contract = new ethers.Contract(
+          coordinateAddress,
+          Coordinates.abi,
+          signer
+        );
         const totalMinted = await contract.totalSupply(); // It's called total supply, but it's total minted
         const totalLimit = await contract.totalLimit(); // It's called total supply, but it's total minted
         setMinted(totalMinted.toNumber());
         setLimit(totalLimit.toNumber());
       }
+      getData();
     }
     getData();
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [wallet, signer, coordinates]);
+
+  async function getCoordinates() {
+    if (!wallet || !signer) return;
+    setLoading(true);
+    const userAddress = await signer.getAddress();
+    const contract = new ethers.Contract(
+      coordinateAddress,
+      Coordinates.abi,
+      provider
+    );
+    try {
+      const userCoordinates = [];
+      const balance = await contract.balanceOf(userAddress);
+      for (let i = 0; i < balance; i++) {
+        const tokenId = await contract.tokenOfOwnerByIndex(userAddress, i);
+        const uri = await contract.tokenURI(tokenId);
+        userCoordinates.push(dataToCoordinates(uri));
+      }
+      setCoordinates(userCoordinates);
+    } catch (err) {
+      console.error("Error: ", err);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  useEffect(() => {
+    getCoordinates();
+  }, [signer, userAddress]);
 
   useEffect(() => {
     const initMap = new mapboxgl.Map({
@@ -123,6 +184,11 @@ function App() {
       map.getCanvas().style.cursor = "";
     });
   }, [coordinates]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  async function connectWallet() {
+    if (!wallet) return;
+    await window.ethereum.request({ method: "eth_requestAccounts" });
+  }
 
   const buildMarkers = (coors) => {
     return coors.map((coor) => {
@@ -247,6 +313,15 @@ function App() {
     } else {
       alert("Please install MetaMask wallet to use Coordinates");
     }
+    if (!wallet || !signer) return;
+    const contract = new ethers.Contract(
+      coordinateAddress,
+      Coordinates.abi,
+      signer
+    );
+    const transaction = await contract.claim();
+    await transaction.wait();
+    getCoordinates();
   }
 
   const dataToCoordinates = (data) => {
@@ -256,16 +331,11 @@ function App() {
     return { id, lat, lng };
   };
 
-  async function requestAccount() {
-    await window.ethereum.request({ method: "eth_requestAccounts" });
-  }
-
   return (
     <div className="App">
       <div className="App-header">
         <TopBar
           {...{
-            userAddress,
             coordinates,
             mintCoordinates,
             getCoordinates,
@@ -275,6 +345,10 @@ function App() {
             limit,
             flyToCoor,
             chainId,
+            connectWallet,
+            wallet,
+            provider,
+            userAddress,
           }}
         />
       </div>

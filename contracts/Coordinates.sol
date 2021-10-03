@@ -1317,7 +1317,7 @@ contract Coordinates is ERC721Enumerable, ReentrancyGuard, Ownable {
         return ((a + m - 1) / m) * m;
     }
     
-    function getCoordinatesFromId(uint256 tokenId) private view returns (Coordinate memory) {
+    function getCoordinatesFromId(uint256 tokenId) public view returns (Coordinate memory) {
         int256 i = int256(tokenId - 1);
         int256 chunkIndex = i % offsetMultiplier;
         int256 base = chunks * chunkIndex;
