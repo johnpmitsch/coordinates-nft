@@ -85,7 +85,7 @@ const TopBar = ({
         <>
           <Badge
             fontSize="md"
-            bgGradient="linear(to-r, coorsGreen.400, coorsGreen.600)"
+            bgGradient="linear(to-r, coorsGreen.500, coorsGreen.600)"
             px="3"
             py="1"
           >
@@ -111,12 +111,7 @@ const TopBar = ({
             <MenuList maxH="75vh" overflowY="scroll">
               {coordinates.map(({ id, lat, lng }) => (
                 <MenuItem key={id} onClick={() => flyToCoor(lat, lng)}>
-                  <Text
-                    p={1}
-                    fontWeight="extrabold"
-                    fontSize="md"
-                    color="black"
-                  >
+                  <Text fontWeight="extrabold" fontSize="md" color="black">
                     {`#${id}`}
                   </Text>
                   <Text p={1} fontSize="md" color="black">
