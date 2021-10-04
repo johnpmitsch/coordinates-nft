@@ -1354,6 +1354,7 @@ contract Coordinates is ERC721Enumerable, ReentrancyGuard, Ownable {
     function ownerClaim(uint256 tokenId) public nonReentrant onlyOwner {
         require(tokenId > userLimit && tokenId <= totalLimit, "Token ID invalid");
         _safeMint(owner(), tokenId);
+        coordinates[tokenId] = coordinateData(tokenId);
     }
 
     function intToStr(int v) internal pure returns (string memory) {

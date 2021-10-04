@@ -224,7 +224,7 @@ function App() {
         const balance = await contract.balanceOf(userAddress);
         for (let i = 0; i < balance; i++) {
           const tokenId = await contract.tokenOfOwnerByIndex(userAddress, i);
-          const uri = await contract.tokenURI(tokenId);
+          const uri = await contract.tokenURI(tokenId.toNumber());
           userCoordinates.push(dataToCoordinates(uri));
         }
         setCoordinates(userCoordinates);
