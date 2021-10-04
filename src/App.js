@@ -5,7 +5,10 @@ import Coordinates from "./artifacts/contracts/Coordinates.sol/Coordinates.json"
 import TopBar from "./components/TopBar";
 import "./App.css";
 
-const coordinateAddress = "0x2B5FD4355bC8882a75A0c255c940D586F9CAB3f0";
+const coordinateAddress =
+  process.env.NODE_ENV === "production"
+    ? "0xe034Eb1390Bd82BB03448Ca00e034ABBA3d69F2f"
+    : "0x2B5FD4355bC8882a75A0c255c940D586F9CAB3f0";
 const AVAX_MAINNET = "0xa86a";
 const AVAX_FUJI_TESTNET = "0xa869";
 
