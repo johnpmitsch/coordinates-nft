@@ -22,7 +22,8 @@ const TopBar = ({
   coordinates,
   mintCoordinates,
   getCoordinates,
-  loading,
+  loadingCoors,
+  loadingMint,
   minted,
   limit,
   flyToCoor,
@@ -62,6 +63,7 @@ const TopBar = ({
       <Image boxSize="8vh" objectFit="cover" src="../logo_128x128.png" />
       <Spacer />
       <Button
+        isLoading={loadingMint}
         bgGradient="linear(to-r, coorsGreen.500, coorsGreen.600)"
         colorScheme="coorsGreen"
         size="md"
@@ -70,7 +72,7 @@ const TopBar = ({
         Mint
       </Button>
       <Button
-        isLoading={loading}
+        isLoading={loadingCoors}
         bgGradient="linear(to-r, coorsGreen.500, coorsGreen.600)"
         colorScheme="coorsGreen"
         size="md"

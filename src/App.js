@@ -5,7 +5,7 @@ import Coordinates from "./artifacts/contracts/Coordinates.sol/Coordinates.json"
 import TopBar from "./components/TopBar";
 import "./App.css";
 
-const coordinateAddress = "0x6bbD58b0b32dB24dF1Bdb341c44Db711aedefF5E";
+const coordinateAddress = "0x2B5FD4355bC8882a75A0c255c940D586F9CAB3f0";
 const AVAX_MAINNET = "0xa86a";
 const AVAX_FUJI_TESTNET = "0xa869";
 
@@ -15,7 +15,8 @@ mapboxgl.accessToken =
 function App() {
   const [map, setMap] = useState(null);
   const [coordinates, setCoordinates] = useState([]);
-  const [loading, setLoading] = useState(false);
+  const [loadingCoors, setLoadingCoors] = useState(false);
+  const [loadingMint, setLoadingMint] = useState(false);
   const [minted, setMinted] = useState(null);
   const [limit, setLimit] = useState(null);
   const node = useRef(null);
@@ -193,15 +194,22 @@ function App() {
   async function mintCoordinates() {
     if (typeof window.ethereum !== "undefined") {
       await requestAccount();
-      const provider = new ethers.providers.Web3Provider(window.ethereum);
-      const signer = provider.getSigner();
-      const contract = new ethers.Contract(
-        coordinateAddress,
-        Coordinates.abi,
-        signer
-      );
-      const transaction = await contract.claim();
-      await transaction.wait();
+      setLoadingMint(true);
+      try {
+        const provider = new ethers.providers.Web3Provider(window.ethereum);
+        const signer = provider.getSigner();
+        const contract = new ethers.Contract(
+          coordinateAddress,
+          Coordinates.abi,
+          signer
+        );
+        const transaction = await contract.claim();
+        await transaction.wait();
+      } catch (err) {
+        console.error("Error: ", err);
+      } finally {
+        setLoadingMint(false);
+      }
     } else {
       alert("Please install MetaMask wallet to use Coordinates");
     }
@@ -209,7 +217,7 @@ function App() {
 
   async function getCoordinates() {
     if (typeof window.ethereum !== "undefined") {
-      setLoading(true);
+      setLoadingCoors(true);
       await requestAccount();
       const provider = new ethers.providers.Web3Provider(window.ethereum);
       const signer = provider.getSigner();
@@ -231,7 +239,7 @@ function App() {
       } catch (err) {
         console.error("Error: ", err);
       } finally {
-        setLoading(false);
+        setLoadingCoors(false);
       }
     } else {
       alert("Please install MetaMask wallet to use Coordinates");
@@ -258,7 +266,8 @@ function App() {
             coordinates,
             mintCoordinates,
             getCoordinates,
-            loading,
+            loadingCoors,
+            loadingMint,
             minted,
             limit,
             flyToCoor,
