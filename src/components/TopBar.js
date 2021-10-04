@@ -3,6 +3,7 @@ import {
   Box,
   Badge,
   Button,
+  Center,
   Menu,
   MenuButton,
   MenuList,
@@ -25,6 +26,7 @@ const TopBar = ({
   minted,
   limit,
   flyToCoor,
+  chainId,
 }) => {
   const avatarRef = useRef(null);
 
@@ -44,6 +46,17 @@ const TopBar = ({
     }
   }, [userAddress]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  if (window?.ethereum?.chainId !== chainId) {
+    return (
+      <Center>
+        <Text>
+          {
+            "Please ensure you have MetaMask installed and connected to the Avalanche Network"
+          }
+        </Text>
+      </Center>
+    );
+  }
   return (
     <Stack spacing={4} direction="row" align="center">
       <Image boxSize="8vh" objectFit="cover" src="../logo_128x128.png" />

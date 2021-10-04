@@ -5,3 +5,6 @@ src/artifacts
 #Hardhat files
 cache
 artifacts
+
+#COOR files
+.env

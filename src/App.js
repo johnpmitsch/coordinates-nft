@@ -5,7 +5,9 @@ import Coordinates from "./artifacts/contracts/Coordinates.sol/Coordinates.json"
 import TopBar from "./components/TopBar";
 import "./App.css";
 
-const coordinateAddress = "0xEc77fF6f35de5dDC4755da6d41B4673f8b9800e1";
+const coordinateAddress = "0x6bbD58b0b32dB24dF1Bdb341c44Db711aedefF5E";
+const AVAX_MAINNET = "0xa86a";
+const AVAX_FUJI_TESTNET = "0xa869";
 
 mapboxgl.accessToken =
   "pk.eyJ1Ijoiam9obm1pdHNjaCIsImEiOiJja3RtZGhoaDUwOXRtMnZvNzBuaXoxb3RhIn0.5xbVwWkmOiGBdOVL5jpBgw";
@@ -18,18 +20,23 @@ function App() {
   const [limit, setLimit] = useState(null);
   const node = useRef(null);
   const userAddress = window?.ethereum?.selectedAddress;
+  const chainId =
+    process.env.NODE_ENV === "production" ? AVAX_MAINNET : AVAX_FUJI_TESTNET;
 
   useEffect(() => {
     async function getData() {
-      if (typeof window.ethereum !== "undefined") {
-        await requestAccount();
-        const provider = new ethers.providers.Web3Provider(window.ethereum);
-        const signer = provider.getSigner();
-        const contract = new ethers.Contract(
-          coordinateAddress,
-          Coordinates.abi,
-          signer
-        );
+      if (typeof window.ethereum === "undefined") return;
+      if (window.ethereum.chainId !== chainId) return;
+      await requestAccount();
+      const provider = new ethers.providers.Web3Provider(window.ethereum);
+      const signer = provider.getSigner();
+
+      const contract = new ethers.Contract(
+        coordinateAddress,
+        Coordinates.abi,
+        signer
+      );
+      if (contract) {
         const totalMinted = await contract.totalSupply(); // It's called total supply, but it's total minted
         const totalLimit = await contract.totalLimit(); // It's called total supply, but it's total minted
         setMinted(totalMinted.toNumber());
@@ -37,7 +44,7 @@ function App() {
       }
     }
     getData();
-  }, []);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     const initMap = new mapboxgl.Map({
@@ -255,6 +262,7 @@ function App() {
             minted,
             limit,
             flyToCoor,
+            chainId,
           }}
         />
       </div>
