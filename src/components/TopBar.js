@@ -58,6 +58,9 @@ const TopBar = ({
           }
         </Text>
       </Center>
+    );
+  }
+
   if (!wallet.selectedAddress) {
     return (
       <Stack spacing={4} direction="row" align="center" px={2}>

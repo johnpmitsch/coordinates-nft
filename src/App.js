@@ -30,7 +30,6 @@ function App() {
   const [signer, setSigner] = useState(null);
   const [userAddress, setUserAddress] = useState(null);
   const node = useRef(null);
-  const userAddress = window?.ethereum?.selectedAddress;
   const chainId =
     process.env.NODE_ENV === "production" ? AVAX_MAINNET : AVAX_FUJI_TESTNET;
 
@@ -79,12 +78,11 @@ function App() {
       }
       getData();
     }
-    getData();
-  }, [wallet, signer, coordinates]);
+  }, [wallet]);
 
   async function getCoordinates() {
     if (!wallet || !signer) return;
-    setLoading(true);
+    setLoadingCoors(true);
     const userAddress = await signer.getAddress();
     const contract = new ethers.Contract(
       coordinateAddress,
@@ -103,7 +101,7 @@ function App() {
     } catch (err) {
       console.error("Error: ", err);
     } finally {
-      setLoading(false);
+      setLoadingCoors(false);
     }
   }
 
@@ -262,7 +260,6 @@ function App() {
 
   async function mintCoordinates() {
     if (typeof window.ethereum !== "undefined") {
-      await requestAccount();
       setLoadingMint(true);
       try {
         const provider = new ethers.providers.Web3Provider(window.ethereum);
@@ -287,7 +284,6 @@ function App() {
   async function getCoordinates() {
     if (typeof window.ethereum !== "undefined") {
       setLoadingCoors(true);
-      await requestAccount();
       const provider = new ethers.providers.Web3Provider(window.ethereum);
       const signer = provider.getSigner();
       const userAddress = await signer.getAddress();
