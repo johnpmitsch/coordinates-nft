@@ -72,12 +72,13 @@ const TopBar = ({
       setChainId(networkId);
       if (wallet?.selectedAddress) setUserAddress(wallet.selectedAddress);
     });
-  }, [wallet]);
+  }, [wallet]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
-    if (avatarRef?.current?.childElementCount < 1) {
+    if (avatarRef?.current?.firstChild)
+      avatarRef.current.removeChild(avatarRef.current.firstChild);
+    if (userAddress)
       avatarRef?.current?.appendChild(generateNewIdenticon(userAddress));
-    }
   }, [userAddress]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const switchToAvalanche = () => {
