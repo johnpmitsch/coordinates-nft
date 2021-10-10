@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import mapboxgl from "!mapbox-gl"; // eslint-disable-line import/no-webpack-loader-syntax
 import { ethers } from "ethers";
 import Coordinates from "./artifacts/contracts/Coordinates.sol/Coordinates.json";
+import detectEthereumProvider from "@metamask/detect-provider";
 import TopBar from "./components/TopBar";
 import "./App.css";
 
@@ -9,8 +10,6 @@ const coordinateAddress =
   process.env.NODE_ENV === "production"
     ? "0xe034Eb1390Bd82BB03448Ca00e034ABBA3d69F2f"
     : "0x2B5FD4355bC8882a75A0c255c940D586F9CAB3f0";
-const AVAX_MAINNET = "0xa86a";
-const AVAX_FUJI_TESTNET = "0xa869";
 
 mapboxgl.accessToken =
   "pk.eyJ1Ijoiam9obm1pdHNjaCIsImEiOiJja3RtZGhoaDUwOXRtMnZvNzBuaXoxb3RhIn0.5xbVwWkmOiGBdOVL5jpBgw";
@@ -22,33 +21,46 @@ function App() {
   const [loadingMint, setLoadingMint] = useState(false);
   const [minted, setMinted] = useState(null);
   const [limit, setLimit] = useState(null);
+  const [wallet, setWallet] = useState(false);
+  const [userAddress, setUserAddress] = useState(null);
   const node = useRef(null);
-  const userAddress = window?.ethereum?.selectedAddress;
-  const chainId =
-    process.env.NODE_ENV === "production" ? AVAX_MAINNET : AVAX_FUJI_TESTNET;
+  useEffect(() => {
+    async function getWallet() {
+      const windowEth = await detectEthereumProvider();
+      if (windowEth) setWallet(windowEth);
+    }
+    getWallet();
+  }, []);
 
   useEffect(() => {
-    async function getData() {
-      if (typeof window.ethereum === "undefined") return;
-      if (window.ethereum.chainId !== chainId) return;
-      await requestAccount();
-      const provider = new ethers.providers.Web3Provider(window.ethereum);
-      const signer = provider.getSigner();
+    if (wallet?.selectedAddress) setUserAddress(wallet.selectedAddress);
+  }, [wallet]);
 
-      const contract = new ethers.Contract(
-        coordinateAddress,
-        Coordinates.abi,
-        signer
-      );
-      if (contract) {
-        const totalMinted = await contract.totalSupply(); // It's called total supply, but it's total minted
-        const totalLimit = await contract.totalLimit(); // It's called total supply, but it's total minted
-        setMinted(totalMinted.toNumber());
-        setLimit(totalLimit.toNumber());
-      }
+  useEffect(() => {
+    if (!wallet) return;
+    wallet.on("accountsChanged", async function () {
+      if (wallet.selectedAddress) setUserAddress(wallet.selectedAddress);
+    });
+  }, [wallet]);
+
+  async function connectWallet() {
+    if (typeof window.ethereum === "undefined") return;
+    await requestAccount();
+    const provider = new ethers.providers.Web3Provider(window.ethereum);
+    const signer = provider.getSigner();
+
+    const contract = new ethers.Contract(
+      coordinateAddress,
+      Coordinates.abi,
+      signer
+    );
+    if (contract) {
+      const totalMinted = await contract.totalSupply(); // It's called total supply, but it's total minted
+      const totalLimit = await contract.totalLimit(); // It's called total supply, but it's total minted
+      setMinted(totalMinted.toNumber());
+      setLimit(totalLimit.toNumber());
     }
-    getData();
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }
 
   useEffect(() => {
     const initMap = new mapboxgl.Map({
@@ -274,7 +286,9 @@ function App() {
             minted,
             limit,
             flyToCoor,
-            chainId,
+            wallet,
+            connectWallet,
+            setUserAddress,
           }}
         />
       </div>

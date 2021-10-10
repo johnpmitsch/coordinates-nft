@@ -1,9 +1,9 @@
-import React, { useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   Box,
   Badge,
   Button,
-  Center,
+  Link,
   Menu,
   MenuButton,
   MenuList,
@@ -15,7 +15,21 @@ import {
 } from "@chakra-ui/react";
 import { ChevronDownIcon } from "@chakra-ui/icons";
 import Jazzicon from "jazzicon";
-import { shortenedAddress } from "../helpers";
+import {
+  shortenedAddress,
+  AVALANCHE_MAINNET_PARAMS,
+  AVALANCHE_TESTNET_PARAMS,
+} from "../helpers";
+
+const TopBarContainer = ({ children }) => {
+  return (
+    <Stack spacing={4} direction="row" align="center" px={2}>
+      <Image boxSize="8vh" objectFit="cover" src="../logo_128x128.png" />
+      <Spacer />
+      {children}
+    </Stack>
+  );
+};
 
 const TopBar = ({
   userAddress,
@@ -27,9 +41,16 @@ const TopBar = ({
   minted,
   limit,
   flyToCoor,
-  chainId,
+  connectWallet,
+  setUserAddress,
+  wallet,
 }) => {
+  const [chainId, setChainId] = useState("");
   const avatarRef = useRef(null);
+  const AVAX_MAINNET = "0xa86a";
+  const AVAX_FUJI_TESTNET = "0xa869";
+  const targetChainId =
+    process.env.NODE_ENV === "production" ? AVAX_MAINNET : AVAX_FUJI_TESTNET;
 
   const jsNumberForAddress = (address) => {
     const addr = address.slice(2, 10);
@@ -42,26 +63,83 @@ const TopBar = ({
   };
 
   useEffect(() => {
-    if (avatarRef?.current?.childElementCount < 1) {
+    if (wallet?.chainId) setChainId(wallet.chainId);
+  }, [wallet]);
+
+  useEffect(() => {
+    if (!wallet) return;
+    wallet.on("chainChanged", function (networkId) {
+      setChainId(networkId);
+      if (wallet?.selectedAddress) setUserAddress(wallet.selectedAddress);
+    });
+  }, [wallet]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    if (avatarRef?.current?.firstChild)
+      avatarRef.current.removeChild(avatarRef.current.firstChild);
+    if (userAddress)
       avatarRef?.current?.appendChild(generateNewIdenticon(userAddress));
-    }
   }, [userAddress]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  if (window?.ethereum?.chainId !== chainId) {
+  const switchToAvalanche = () => {
+    const networkParams =
+      process.env.NODE_ENV === "production"
+        ? AVALANCHE_MAINNET_PARAMS
+        : AVALANCHE_TESTNET_PARAMS;
+    wallet.request({
+      method: "wallet_addEthereumChain",
+      params: [networkParams],
+    });
+  };
+
+  if (!wallet || !wallet?.selectedAddress) {
     return (
-      <Center>
-        <Text>
-          {
-            "Please ensure you have MetaMask installed and connected to the Avalanche Network"
-          }
-        </Text>
-      </Center>
+      <TopBarContainer>
+        {wallet ? (
+          <Button
+            bgGradient="linear(to-r, coorsGreen.500, coorsBlue.600)"
+            colorScheme="coorsGreen"
+            size="md"
+            m={"2"}
+            onClick={connectWallet}
+            color
+          >
+            {"Connect Wallet"}
+          </Button>
+        ) : (
+          <Text>
+            Please download{" "}
+            <Link href="https://metamask.io/" isExternal>
+              MetaMask
+            </Link>{" "}
+            to use Coordinates
+          </Text>
+        )}
+      </TopBarContainer>
     );
   }
+
+  if (wallet && chainId !== targetChainId) {
+    return (
+      <TopBarContainer>
+        <Button
+          bgGradient="linear(to-r, coorsGreen.500, coorsBlue.600)"
+          colorScheme="coorsGreen"
+          size="md"
+          m={"2"}
+          onClick={switchToAvalanche}
+          _hover={{
+            bgGradient: "linear(to-r, coorsGreen.300, coorsBlue.400)",
+          }}
+        >
+          {"Switch to Avalanche Chain"}
+        </Button>
+      </TopBarContainer>
+    );
+  }
+
   return (
-    <Stack spacing={4} direction="row" align="center">
-      <Image boxSize="8vh" objectFit="cover" src="../logo_128x128.png" />
-      <Spacer />
+    <TopBarContainer>
       <Button
         isLoading={loadingMint}
         bgGradient="linear(to-r, coorsGreen.500, coorsGreen.600)"
@@ -138,7 +216,7 @@ const TopBar = ({
           </Box>
         </>
       )}
-    </Stack>
+    </TopBarContainer>
   );
 };
 
