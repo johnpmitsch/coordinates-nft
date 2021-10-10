@@ -79,7 +79,7 @@ const TopBar = ({
       avatarRef.current.removeChild(avatarRef.current.firstChild);
     if (userAddress)
       avatarRef?.current?.appendChild(generateNewIdenticon(userAddress));
-  }, [userAddress]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [userAddress, chainId]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const switchToAvalanche = () => {
     const networkParams =
